@@ -42,8 +42,8 @@ class TrolyWP_Agent_Client_Widget extends WP_Widget {
                 currentMode = mode;
                 if (mode === "sidebar") {
                     panel.style.width = "350px";
-                    panel.style.height = "100vh";
-                    panel.style.top = "0";
+                    panel.style.height = "calc(100vh - 32px)";
+                    panel.style.top = "32px";
                     panel.style.right = "0";
                     panel.style.borderRadius = "12px 0 0 12px";
                     panel.style.boxShadow = "-2px 0 16px rgba(0,0,0,0.2)";
