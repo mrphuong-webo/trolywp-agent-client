@@ -54,16 +54,30 @@ add_action('admin_footer', function() {
     icon.onclick = function(){
         if (popup.style.display === "block") {
             popup.style.display = "none";
+            document.body.style.marginRight = "0";
+            var adminbar = document.getElementById("wpadminbar");
+            if (adminbar) adminbar.style.marginRight = "0";
         } else {
             popup.style.display = "block";
             setMode(currentMode);
+            if (currentMode === "sidebar") {
+                document.body.style.transition = "margin-right 0.3s";
+                document.body.style.marginRight = "350px";
+                var adminbar = document.getElementById("wpadminbar");
+                if (adminbar) adminbar.style.transition = "margin-right 0.3s";
+                if (adminbar) adminbar.style.marginRight = "350px";
+            }
         }
     };
     closeBtn.onclick = function(){
         popup.style.display = "none";
+        document.body.style.marginRight = "0";
+        var adminbar = document.getElementById("wpadminbar");
+        if (adminbar) adminbar.style.marginRight = "0";
     };
     function setMode(mode) {
         currentMode = mode;
+        var adminbar = document.getElementById("wpadminbar");
         if (mode === "sidebar") {
             popup.style.width = "350px";
             popup.style.height = "100vh";
@@ -71,6 +85,8 @@ add_action('admin_footer', function() {
             popup.style.right = "0";
             popup.style.borderRadius = "12px 0 0 12px";
             popup.style.boxShadow = "-2px 0 16px rgba(0,0,0,0.2)";
+            document.body.style.marginRight = "350px";
+            if (adminbar) adminbar.style.marginRight = "350px";
         } else if (mode === "popup") {
             popup.style.width = "350px";
             popup.style.height = "420px";
@@ -79,6 +95,8 @@ add_action('admin_footer', function() {
             popup.style.right = "24px";
             popup.style.borderRadius = "12px";
             popup.style.boxShadow = "0 2px 16px rgba(0,0,0,0.2)";
+            document.body.style.marginRight = "0";
+            if (adminbar) adminbar.style.marginRight = "0";
         } else if (mode === "fixed") {
             popup.style.width = "100vw";
             popup.style.height = "100vh";
@@ -86,6 +104,8 @@ add_action('admin_footer', function() {
             popup.style.right = "0";
             popup.style.borderRadius = "0";
             popup.style.boxShadow = "none";
+            document.body.style.marginRight = "0";
+            if (adminbar) adminbar.style.marginRight = "0";
         }
     }
     modeSidebar.onclick = function(){ setMode("sidebar"); };
