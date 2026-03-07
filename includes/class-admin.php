@@ -27,7 +27,8 @@ class TrolyWP_Agent_Client_Admin {
                 $n8n_url = 'https://trolywp.com/webhook-n8n'; // crawl thực tế
                 update_option('trolywp_agent_client_n8n_url', $n8n_url);
             } else if ($mode === 'custom') {
-                if (isset($_POST['custom_n8n_url'])) {
+                // Chỉ lưu khi có custom_n8n_url submit
+                if (isset($_POST['custom_n8n_url']) && !empty($_POST['custom_n8n_url'])) {
                     update_option('trolywp_agent_client_n8n_url', esc_url_raw($_POST['custom_n8n_url']));
                 }
             }
