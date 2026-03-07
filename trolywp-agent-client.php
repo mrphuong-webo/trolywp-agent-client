@@ -80,8 +80,8 @@ add_action('admin_footer', function() {
         var adminbar = document.getElementById("wpadminbar");
         if (mode === "sidebar") {
             popup.style.width = "350px";
-            popup.style.height = "100vh";
-            popup.style.top = "0";
+            popup.style.height = "calc(100vh - 32px)";
+            popup.style.top = "32px";
             popup.style.right = "0";
             popup.style.borderRadius = "12px 0 0 12px";
             popup.style.boxShadow = "-2px 0 16px rgba(0,0,0,0.2)";
