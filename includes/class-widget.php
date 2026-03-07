@@ -10,6 +10,10 @@ class TrolyWP_Agent_Client_Widget extends WP_Widget {
         if (!is_user_logged_in() || !current_user_can('manage_options')) return;
         echo $args['before_widget'];
         $webhook_url = get_option('trolywp_agent_client_n8n_url', '');
+        echo '<div style="padding:8px;font-size:12px;background:#f9f9f9;border-bottom:1px solid #eee;">';
+        echo 'Webhook URL: <b>' . esc_html($webhook_url) . '</b><br>';
+        echo 'Option trạng thái: ' . (empty($webhook_url) ? '<span style="color:red">Rỗng</span>' : '<span style="color:green">Đã có</span>');
+        echo '</div>';
         if (empty($webhook_url)) {
             echo '<div style="color:red;padding:12px;">Chưa cấu hình webhook n8n URL!</div>';
         } else {
