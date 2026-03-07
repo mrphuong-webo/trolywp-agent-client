@@ -51,6 +51,9 @@ add_action('admin_footer', function() {
     var modeFixed = document.getElementById("trolywp-chat-mode-fixed-admin");
     var iframe = document.getElementById("trolywp-chat-iframe-admin");
     var currentMode = "sidebar";
+        // Lấy trạng thái từ localStorage khi mở popup
+        var savedMode = localStorage.getItem('trolywp_chat_mode');
+        if (savedMode) currentMode = savedMode;
     icon.onclick = function(){
         if (popup.style.display === "block") {
             popup.style.display = "none";
@@ -77,6 +80,7 @@ add_action('admin_footer', function() {
     };
     function setMode(mode) {
         currentMode = mode;
+        localStorage.setItem('trolywp_chat_mode', mode);
         var adminbar = document.getElementById("wpadminbar");
         if (mode === "sidebar") {
             popup.style.width = "350px";

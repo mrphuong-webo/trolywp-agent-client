@@ -40,6 +40,7 @@ class TrolyWP_Agent_Client_Widget extends WP_Widget {
             var currentMode = "sidebar";
             function setMode(mode) {
                 currentMode = mode;
+                localStorage.setItem('trolywp_chat_mode', mode);
                 if (mode === "sidebar") {
                     panel.style.width = "350px";
                     panel.style.height = "calc(100vh - 32px)";
@@ -67,6 +68,10 @@ class TrolyWP_Agent_Client_Widget extends WP_Widget {
                     document.body.style.marginRight = "0";
                 }
             }
+                        // Lấy trạng thái từ localStorage khi mở panel
+                        var savedMode = localStorage.getItem('trolywp_chat_mode');
+                        if (savedMode) currentMode = savedMode;
+                        // ...existing code...
             icon.onclick = function(){
                 if (panel.style.display === "block") {
                     panel.style.display = "none";
