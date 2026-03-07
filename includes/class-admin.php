@@ -23,16 +23,13 @@ class TrolyWP_Agent_Client_Admin {
             $mode = isset($_POST['n8n_mode']) ? sanitize_text_field($_POST['n8n_mode']) : 'trolywp';
             update_option('trolywp_agent_client_n8n_mode', $mode);
             if ($mode === 'trolywp') {
-                // Crawl link n8n trolywp.com (giả lập crawl, thực tế dùng wp_remote_get)
-                $n8n_url = 'https://trolywp.com/webhook-n8n'; // crawl thực tế
+                $n8n_url = 'https://trolywp.com/webhook-n8n';
                 update_option('trolywp_agent_client_n8n_url', $n8n_url);
             } else if ($mode === 'custom') {
-                // Chỉ lưu khi có custom_n8n_url submit
-                if (isset($_POST['custom_n8n_url']) && !empty($_POST['custom_n8n_url'])) {
-                    update_option('trolywp_agent_client_n8n_url', esc_url_raw($_POST['custom_n8n_url']));
-                }
+                // Luôn lưu custom_n8n_url, kể cả rỗng (để xóa nếu cần)
+                $custom_n8n_url = isset($_POST['custom_n8n_url']) ? esc_url_raw($_POST['custom_n8n_url']) : '';
+                update_option('trolywp_agent_client_n8n_url', $custom_n8n_url);
             }
-            // ...existing code...
             if (isset($_POST['ui_height'])) update_option('trolywp_agent_client_ui_height', sanitize_text_field($_POST['ui_height'] ?? '420px'));
             if (isset($_POST['ui_width'])) update_option('trolywp_agent_client_ui_width', sanitize_text_field($_POST['ui_width'] ?? '350px'));
             if (isset($_POST['ui_color'])) update_option('trolywp_agent_client_ui_color', sanitize_hex_color($_POST['ui_color'] ?? '#222'));
