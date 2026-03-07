@@ -87,4 +87,5 @@ add_action('wp_footer', function() {
     modePopup.onclick = function(){ setMode("popup"); };
     modeFixed.onclick = function(){ setMode("fixed"); };
     </script>';
+});
 ?>
