@@ -1,0 +1,39 @@
+/* TrolyWP Agent Client Chat CSS */
+.trolywp-chat-icon {
+  cursor: pointer;
+  width: 60px;
+  height: 60px;
+  background: #222;
+  border-radius: 50%;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.trolywp-chat-popup {
+  display: none;
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  width: 350px;
+  height: 420px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  z-index: 9999;
+  overflow: hidden;
+}
+.trolywp-chat-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 10000;
+  background: rgba(0,0,0,0.02);
+}
