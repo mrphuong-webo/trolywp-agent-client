@@ -28,9 +28,14 @@ add_action('admin_footer', function() {
     echo '<div id="trolywp-chat-icon" style="cursor:pointer;width:60px;height:60px;background:#222;border-radius:50%;position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);" title="TrolyWP Chat">
         <svg width="32" height="32" fill="#fff" viewBox="0 0 24 24"><path d="M12 3C6.48 3 2 7.03 2 12c0 2.4 1.05 4.58 2.83 6.23-.13.49-.51 1.77-.73 2.47-.09.28.19.54.47.45.66-.21 2.02-.66 2.51-.81C8.7 21.66 10.31 22 12 22c5.52 0 10-4.03 10-9s-4.48-10-10-10zm0 17c-1.52 0-3.01-.29-4.37-.85l-.34-.14-.36.11c-.41.13-1.23.39-1.87.59.18-.56.47-1.51.57-1.89l.09-.36-.27-.28C4.13 16.13 3 14.17 3 12c0-4.42 4.03-8 9-8s9 3.58 9 8-4.03 8-9 8zm-1-7h2v2h-2v-2zm0-8h2v6h-2V5z"/></svg>
     </div>';
-    echo '<div id="trolywp-chat-popup" style="display:none;position:fixed;bottom:90px;right:24px;width:350px;height:420px;background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,0.2);z-index:9999;overflow:hidden;">
-        <div style="padding:16px;text-align:center;color:#888;">TrolyWP Chat sẽ xuất hiện ở đây.</div>
-    </div>';
+    $webhook_url = get_option('trolywp_agent_client_n8n_url', '');
+    echo '<div id="trolywp-chat-popup" style="display:none;position:fixed;bottom:90px;right:24px;width:350px;height:420px;background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,0.2);z-index:9999;overflow:hidden;">';
+    if (empty($webhook_url)) {
+        echo '<div style="color:red;padding:16px;text-align:center;">Chưa cấu hình webhook n8n URL!</div>';
+    } else {
+        echo '<iframe src="' . esc_url($webhook_url) . '" style="width:100%;height:100%;border:none;"></iframe>';
+    }
+    echo '</div>';
     echo '<script>
     document.getElementById("trolywp-chat-icon").onclick = function(){
         var popup = document.getElementById("trolywp-chat-popup");
