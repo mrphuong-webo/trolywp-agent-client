@@ -59,8 +59,8 @@ class TrolyWP_Agent_Client_Widget extends WP_Widget {
                     document.body.style.marginRight = "0";
                 } else if (mode === "fixed") {
                     panel.style.width = "100vw";
-                    panel.style.height = "100vh";
-                    panel.style.top = "0";
+                    panel.style.height = "calc(100vh - 32px)";
+                    panel.style.top = "32px";
                     panel.style.right = "0";
                     panel.style.borderRadius = "0";
                     panel.style.boxShadow = "none";

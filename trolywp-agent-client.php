@@ -99,8 +99,8 @@ add_action('admin_footer', function() {
             if (adminbar) adminbar.style.marginRight = "0";
         } else if (mode === "fixed") {
             popup.style.width = "100vw";
-            popup.style.height = "100vh";
-            popup.style.top = "0";
+            popup.style.height = "calc(100vh - 32px)";
+            popup.style.top = "32px";
             popup.style.right = "0";
             popup.style.borderRadius = "0";
             popup.style.boxShadow = "none";
