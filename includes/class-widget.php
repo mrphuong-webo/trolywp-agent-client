@@ -29,16 +29,20 @@ class TrolyWP_Agent_Client_Widget extends WP_Widget {
             echo '<script>
             var icon = document.getElementById("trolywp-chat-icon");
             var sidebar = document.getElementById("trolywp-chat-sidebar");
-            var closeBtn = null;
+            var closeBtn = document.getElementById("trolywp-chat-close");
             icon.onclick = function(){
-                sidebar.style.display = "block";
-                document.body.style.transition = "margin-right 0.3s";
-                document.body.style.marginRight = "350px";
-                closeBtn = document.getElementById("trolywp-chat-close");
-                closeBtn.onclick = function(){
+                if (sidebar.style.display === "block") {
                     sidebar.style.display = "none";
                     document.body.style.marginRight = "0";
-                };
+                } else {
+                    sidebar.style.display = "block";
+                    document.body.style.transition = "margin-right 0.3s";
+                    document.body.style.marginRight = "350px";
+                }
+            };
+            closeBtn.onclick = function(){
+                sidebar.style.display = "none";
+                document.body.style.marginRight = "0";
             };
             </script>';
         }
