@@ -16,8 +16,6 @@
  Đưa các hook add_action/add_filter vào hàm riêng, chỉ gọi trong bootstrap.
 
 ## 3. Đề xuất tính năng mới hữu ích
-- Lưu lịch sử chat (localStorage hoặc gửi về server, cho phép user xem lại).
-- Thông báo realtime khi có tin nhắn mới (nếu backend hỗ trợ push).
 - Tùy chỉnh giao diện nâng cao: Cho phép chọn theme, vị trí, hiệu ứng mở/đóng.
 - Hỗ trợ đa ngôn ngữ (i18n/l10n cho UI chat).
 - Tích hợp analytics: Đếm số lượt chat, thời gian phản hồi, v.v.
