@@ -30,15 +30,14 @@ class TrolyWP_Agent_Client_Manager_Client {
     }
 
     /**
-     * Ký payload bằng webo-hmac-auth và trả về headers + payload đã thêm timestamp/nonce.
+     * Ký payload và trả về headers + payload đã thêm timestamp/nonce.
+     *
+     * Ưu tiên dùng helper của webo-hmac-auth nếu có (webo_hmac_sign).
+     * Nếu không, fallback sang hash_hmac('sha256', json_encode(payload), secret).
      *
      * @return array{ok:bool, error?:string, headers?:array, payload?:array}
      */
     protected static function sign_payload(array $payload): array {
-        if (!function_exists('webo_hmac_sign')) {
-            return ['ok' => false, 'error' => 'webo_hmac_sign_not_available'];
-        }
-
         $key_id = get_option('webo_hmac_key_id', '');
         $secret = get_option('webo_hmac_secret', '');
 
@@ -49,7 +48,13 @@ class TrolyWP_Agent_Client_Manager_Client {
         $payload['timestamp'] = time();
         $payload['nonce']     = wp_generate_uuid4();
 
-        $signature = webo_hmac_sign($payload, $secret);
+        if (function_exists('webo_hmac_sign')) {
+            // Dùng helper của plugin webo-hmac-auth nếu có.
+            $signature = webo_hmac_sign($payload, $secret);
+        } else {
+            // Fallback: tự ký HMAC theo secret (manager phải verify theo cùng chuẩn này).
+            $signature = hash_hmac('sha256', wp_json_encode($payload), $secret);
+        }
 
         $headers = [
             'Content-Type'     => 'application/json',
