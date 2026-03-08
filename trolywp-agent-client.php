@@ -1,3 +1,4 @@
+<?php
 register_activation_hook(__FILE__, function() {
     if (!function_exists('is_plugin_active')) {
         require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -6,8 +7,11 @@ register_activation_hook(__FILE__, function() {
         deactivate_plugins(plugin_basename(__FILE__));
         wp_die('TrolyWP Agent Client cần cài đặt và kích hoạt plugin <b>webo-hmac-auth</b> để hoạt động.');
     }
+    // Tạo site_id nếu chưa có để dùng làm định danh client với manager hub.
+    if (!get_option('trolywp_agent_client_site_id')) {
+        update_option('trolywp_agent_client_site_id', wp_generate_uuid4());
+    }
 });
-<?php
 /**
  * Plugin Name: TrolyWP Agent Client
  * Description: Kết nối site với trolywp.com, cung cấp UI chat AI, forward chat qua HMAC.
@@ -24,6 +28,8 @@ require_once __DIR__ . '/includes/class-shortcode.php';
 require_once __DIR__ . '/includes/class-admin.php';
 require_once __DIR__ . '/includes/class-utils.php';
 require_once __DIR__ . '/includes/class-widget.php';
+require_once __DIR__ . '/includes/class-manager-client.php';
+require_once __DIR__ . '/includes/class-rest-chat.php';
 
 add_shortcode('trolywp_ai_chat_client', ['TrolyWP_Agent_Client_Shortcode', 'render']);
 add_action('admin_menu', ['TrolyWP_Agent_Client_Admin', 'menu']);
@@ -31,6 +37,8 @@ add_action('admin_notices', ['TrolyWP_Agent_Client_Utils', 'dependency_notice'])
 add_action('widgets_init', function () {
     register_widget('TrolyWP_Agent_Client_Widget');
 });
+// REST API chat endpoint cho UI phía client.
+add_action('rest_api_init', ['TrolyWP_Agent_Client_REST_Chat', 'register_routes']);
 // Hiển thị icon chat ở backend admin cho admin đã đăng nhập
 add_action('admin_footer', function() {
     if (!is_user_logged_in() || !current_user_can('manage_options')) return;
