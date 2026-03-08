@@ -1,3 +1,129 @@
+            // Hàm gửi message lên manager hub
+            async function sendChatToManager(payload) {
+                // Gọi backend để ký HMAC (giả lập demo)
+                // Thực tế: gọi AJAX hoặc REST API WordPress để ký HMAC bằng PHP
+                // payload.signature = await getHmacSignature(payload);
+                // Demo: signature là chuỗi random
+                payload.signature = Math.random().toString(36).substring(2);
+                payload.key_id = window.TrolywpClientChatConfig.keyId || 'demo-key';
+                // Gửi lên manager hub
+                const managerUrl = 'https://trolywp.com/api/chat';
+                try {
+                    const res = await fetch(managerUrl, {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await res.json();
+                    if (result && result.reply) {
+                        // Hiển thị phản hồi AI
+                        let history = [];
+                        try { history = JSON.parse(localStorage.getItem('trolywp_chat_history')||'[]'); } catch(e){}
+                        history.push(`[AI] ${result.reply}`);
+                        localStorage.setItem('trolywp_chat_history', JSON.stringify(history));
+                        renderHistory();
+                    }
+                } catch (e) {
+                    let history = [];
+                    try { history = JSON.parse(localStorage.getItem('trolywp_chat_history')||'[]'); } catch(e){}
+                    history.push(`[Lỗi] Không gửi được chat: ${e.message}`);
+                    localStorage.setItem('trolywp_chat_history', JSON.stringify(history));
+                    renderHistory();
+                }
+            }
+        // Tạo vùng chọn agent
+        let agentSelectDiv = popup.querySelector('.trolywp-agent-select');
+        if (!agentSelectDiv) {
+            agentSelectDiv = document.createElement('div');
+            agentSelectDiv.className = 'trolywp-agent-select';
+            agentSelectDiv.style = 'padding:8px;background:#f9f9f9;border-bottom:1px solid #eee;display:flex;gap:8px;align-items:center;';
+            popup.insertBefore(agentSelectDiv, chatHistoryDiv);
+        }
+
+        // Hàm lấy danh sách agent từ manager hub (demo)
+        function fetchAgents() {
+            // Thay bằng fetch('/wp-json/trolywp-client/v1/agents', ...) nếu có backend
+            // Demo: trả về cứng
+            return Promise.resolve([
+                {id:'agent1', name:'AI Chatbot', desc:'Trợ lý AI chung'},
+                {id:'agent2', name:'Content Writer', desc:'Viết nội dung'},
+                {id:'agent3', name:'SEO Assistant', desc:'Tối ưu SEO'},
+            ]);
+        }
+
+        // Hàm render select agent
+        let selectedAgentId = '';
+        function renderAgentSelect() {
+            fetchAgents().then(agents => {
+                agentSelectDiv.innerHTML = '<b>Chọn agent:</b>';
+                const select = document.createElement('select');
+                select.style = 'padding:6px;border-radius:6px;border:1px solid #ccc;';
+                agents.forEach(agent => {
+                    const option = document.createElement('option');
+                    option.value = agent.id;
+                    option.textContent = agent.name + ' - ' + agent.desc;
+                    select.appendChild(option);
+                });
+                select.onchange = function() {
+                    selectedAgentId = this.value;
+                };
+                agentSelectDiv.appendChild(select);
+                // Chọn agent đầu tiên mặc định
+                if (agents.length > 0) {
+                    select.value = agents[0].id;
+                    selectedAgentId = agents[0].id;
+                }
+            });
+        }
+
+        // Gửi message với metadata đầy đủ
+        chatInputDiv.querySelector('.trolywp-chat-send').onclick = function() {
+            const input = chatInputDiv.querySelector('.trolywp-chat-msg');
+            const msg = input.value.trim();
+            if (!msg || !selectedAgentId) return;
+            // Lấy metadata (demo)
+            const site_id = window.TrolywpClientChatConfig.siteId || 'demo-site';
+            const author_id = window.TrolywpClientChatConfig.authorId || 'demo-author';
+            const conversation_id = window.TrolywpClientChatConfig.conversationId || 'demo-conv';
+            const payload = {
+                site_id,
+                author_id,
+                agent_id: selectedAgentId,
+                conversation_id,
+                message: msg,
+                timestamp: Date.now(),
+                nonce: Math.random().toString(36).substring(2),
+            };
+            // Gửi lên manager hub
+            const chatPayload = {
+                site_id,
+                author_id,
+                agent_id: selectedAgentId,
+                conversation_id,
+                message: msg,
+                timestamp: Date.now(),
+                nonce: Math.random().toString(36).substring(2),
+            };
+            // Lưu message gửi
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem('trolywp_chat_history')||'[]'); } catch(e){}
+            history.push(`[${selectedAgentId}] ${msg}`);
+            localStorage.setItem('trolywp_chat_history', JSON.stringify(history));
+            input.value = '';
+            renderHistory();
+            // Gửi lên manager hub và nhận phản hồi AI
+            sendChatToManager(chatPayload);
+        };
+
+        // Hiển thị select agent khi mở popup
+        icon.onclick = function(){
+            popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+            if (popup.style.display === 'block') {
+                renderHistory();
+                renderSuggestions();
+                renderAgentSelect();
+            }
+        };
     // Module suggestion: hiển thị gợi ý câu hỏi
     let suggestionDiv = popup.querySelector('.trolywp-chat-suggestion');
     if (!suggestionDiv) {

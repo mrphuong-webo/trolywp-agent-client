@@ -19,6 +19,99 @@ class TrolyWP_Agent_Client_Admin {
     }
 
     public static function settings_tab() {
+                        // Đồng bộ author lên manager hub nếu site đã active
+                        $site_status = get_option('trolywp_agent_client_site_status', '');
+                        if ($site_status === 'active') {
+                            $client_site_id = get_option('trolywp_agent_client_site_id', '');
+                            $authors = get_users([
+                                'role__in' => ['administrator', 'editor', 'author'],
+                                'fields' => ['ID', 'display_name', 'user_email', 'roles'],
+                            ]);
+                            $author_payload = [];
+                            foreach ($authors as $user) {
+                                $avatar = get_avatar_url($user->ID);
+                                $author_payload[] = [
+                                    'wp_user_id' => $user->ID,
+                                    'display_name' => $user->display_name,
+                                    'email' => $user->user_email,
+                                    'role' => implode(',', $user->roles),
+                                    'avatar' => $avatar,
+                                    'client_site_id' => $client_site_id,
+                                ];
+                            }
+                            // Ký HMAC bằng plugin webo-hmac-auth
+                            if (function_exists('webo_hmac_sign')) {
+                                $key_id = get_option('webo_hmac_key_id', '');
+                                $secret = get_option('webo_hmac_secret', '');
+                                $payload = [
+                                    'authors' => $author_payload,
+                                    'timestamp' => time(),
+                                    'nonce' => wp_generate_uuid4(),
+                                    'key_id' => $key_id,
+                                ];
+                                $payload['signature'] = webo_hmac_sign($payload, $secret);
+                                $manager_url = 'https://trolywp.com/api/sync-authors';
+                                $response = wp_remote_post($manager_url, [
+                                    'body' => $payload,
+                                    'timeout' => 10,
+                                ]);
+                                if (!is_wp_error($response)) {
+                                    $body = wp_remote_retrieve_body($response);
+                                    $result = json_decode($body, true);
+                                    if (isset($result['ok']) && $result['ok']) {
+                                        echo '<div class="updated"><p>Đồng bộ author thành công!</p></div>';
+                                    } else {
+                                        echo '<div class="error"><p>Đồng bộ author thất bại: '.esc_html($body).'</p></div>';
+                                    }
+                                } else {
+                                    echo '<div class="error"><p>Lỗi kết nối manager hub: '.esc_html($response->get_error_message()).'</p></div>';
+                                }
+                            }
+                        }
+                // Đăng ký site với manager hub nếu chưa có trạng thái kết nối
+                $site_status = get_option('trolywp_agent_client_site_status', '');
+                if ($site_status !== 'active') {
+                    $domain = get_site_url();
+                    $site_name = get_bloginfo('name');
+                    $admin_email = get_bloginfo('admin_email');
+                    $site_id = get_option('trolywp_agent_client_site_id', '');
+                    if (!$site_id) {
+                        $site_id = wp_generate_uuid4();
+                        update_option('trolywp_agent_client_site_id', $site_id);
+                    }
+                    $payload = [
+                        'domain' => $domain,
+                        'site_name' => $site_name,
+                        'admin_email' => $admin_email,
+                        'site_id' => $site_id,
+                    ];
+                    // Ký HMAC bằng plugin webo-hmac-auth
+                    if (function_exists('webo_hmac_sign')) {
+                        $key_id = get_option('webo_hmac_key_id', '');
+                        $secret = get_option('webo_hmac_secret', '');
+                        $payload['timestamp'] = time();
+                        $payload['nonce'] = wp_generate_uuid4();
+                        $payload['signature'] = webo_hmac_sign($payload, $secret);
+                        $payload['key_id'] = $key_id;
+                    }
+                    $manager_url = 'https://trolywp.com/api/register-client';
+                    $response = wp_remote_post($manager_url, [
+                        'body' => $payload,
+                        'timeout' => 10,
+                    ]);
+                    if (!is_wp_error($response)) {
+                        $body = wp_remote_retrieve_body($response);
+                        $result = json_decode($body, true);
+                        if (isset($result['ok']) && $result['ok']) {
+                            update_option('trolywp_agent_client_site_status', 'active');
+                            echo '<div class="updated"><p>Đăng ký site thành công với manager hub!</p></div>';
+                        } else {
+                            echo '<div class="error"><p>Đăng ký site thất bại: '.esc_html($body).'</p></div>';
+                        }
+                    } else {
+                        echo '<div class="error"><p>Lỗi kết nối manager hub: '.esc_html($response->get_error_message()).'</p></div>';
+                    }
+                }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mode = isset($_POST['n8n_mode']) ? sanitize_text_field($_POST['n8n_mode']) : 'trolywp';
             update_option('trolywp_agent_client_n8n_mode', $mode);

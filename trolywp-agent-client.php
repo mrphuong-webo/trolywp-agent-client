@@ -1,3 +1,12 @@
+register_activation_hook(__FILE__, function() {
+    if (!function_exists('is_plugin_active')) {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    }
+    if (!is_plugin_active('webo-hmac-auth/webo-hmac-auth.php')) {
+        deactivate_plugins(plugin_basename(__FILE__));
+        wp_die('TrolyWP Agent Client cần cài đặt và kích hoạt plugin <b>webo-hmac-auth</b> để hoạt động.');
+    }
+});
 <?php
 /**
  * Plugin Name: TrolyWP Agent Client
