@@ -1,3 +1,49 @@
+    // Module suggestion: hiển thị gợi ý câu hỏi
+    let suggestionDiv = popup.querySelector('.trolywp-chat-suggestion');
+    if (!suggestionDiv) {
+        suggestionDiv = document.createElement('div');
+        suggestionDiv.className = 'trolywp-chat-suggestion';
+        suggestionDiv.style = 'padding:8px;background:#f5f5f5;border-top:1px solid #eee;display:flex;gap:6px;flex-wrap:wrap;';
+        popup.appendChild(suggestionDiv);
+    }
+
+    // Hàm lấy gợi ý từ API (demo: trả về cứng)
+    function fetchSuggestions(history) {
+        // Thay bằng fetch('/wp-json/trolywp/v1/suggestion', ...) nếu có backend
+        // Demo: trả về gợi ý cứng
+        return Promise.resolve([
+            'Xin chào!',
+            'Bạn cần hỗ trợ gì?',
+            'Tôi có thể giúp gì cho bạn?',
+            'Hãy mô tả vấn đề của bạn.',
+            'Bạn muốn hỏi về chủ đề nào?'
+        ]);
+    }
+
+    // Hàm render suggestion
+    function renderSuggestions() {
+        let history = [];
+        try { history = JSON.parse(localStorage.getItem('trolywp_chat_history')||'[]'); } catch(e){}
+        fetchSuggestions(history).then(suggestions => {
+            suggestionDiv.innerHTML = suggestions.map(s => `<button style="padding:6px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;">${s}</button>`).join('');
+            // Gửi nhanh khi click gợi ý
+            Array.from(suggestionDiv.querySelectorAll('button')).forEach(btn => {
+                btn.onclick = function() {
+                    chatInputDiv.querySelector('.trolywp-chat-msg').value = btn.textContent;
+                    chatInputDiv.querySelector('.trolywp-chat-send').click();
+                };
+            });
+        });
+    }
+
+    // Hiển thị suggestion khi mở popup
+    icon.onclick = function(){
+        popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+        if (popup.style.display === 'block') {
+            renderHistory();
+            renderSuggestions();
+        }
+    };
 // Main loader for TrolyWP Agent Client
 // Handles: open/close popup, resize, mode switch, shared UI logic
 import { getEl } from './trolywp-agent-client-utils.js';
