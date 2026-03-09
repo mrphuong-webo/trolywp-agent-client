@@ -1,3 +1,29 @@
+// Inject icon và popup chat tự động vào frontend (không cần shortcode)
+add_action('wp_footer', function() {
+    if (is_admin()) return;
+    // Inject config JS
+    $config = [
+        'n8nUrl' => get_option('trolywp_agent_client_n8n_url', ''),
+        'authorKey' => '', // TODO: lấy key từ user_meta nếu cần
+        'siteId' => get_option('trolywp_agent_client_site_id', ''),
+    ];
+    echo '<script>window.TrolywpClientChatConfig = ' . wp_json_encode($config) . ';</script>';
+    // Enqueue loader JS
+    wp_enqueue_script(
+        'trolywp-agent-client-loader',
+        plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client-loader.js',
+        [],
+        time(),
+        true
+    );
+    // Enqueue CSS
+    wp_enqueue_style(
+        'trolywp-agent-client-css',
+        plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client.css',
+        [],
+        time()
+    );
+});
 <?php
 register_activation_hook(__FILE__, function() {
     if (!function_exists('is_plugin_active')) {
