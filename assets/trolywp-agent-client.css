@@ -24,8 +24,10 @@
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.2);
-  z-index: 9999;
+  z-index: 99999;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 .trolywp-chat-resize-handle {
   position: absolute;

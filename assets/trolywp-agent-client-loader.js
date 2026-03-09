@@ -127,12 +127,10 @@
         // Đảm bảo popup luôn được render và hiện ra ngay lần đầu tiên
         popup.style.display = 'none'; // Ẩn mặc định
         icon.onclick = function(){
-            if (popup.style.display !== 'block') {
-                popup.style.display = 'block';
-                renderHistory();
-                renderSuggestions();
-                renderAgentSelect();
-            }
+            popup.style.display = 'block';
+            renderHistory();
+            renderSuggestions();
+            renderAgentSelect();
         };
     // Module suggestion: hiển thị gợi ý câu hỏi
     let suggestionDiv = popup.querySelector('.trolywp-chat-suggestion');
