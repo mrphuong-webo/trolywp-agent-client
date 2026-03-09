@@ -124,14 +124,12 @@
             sendChatToManager(chatPayload);
         };
 
-        // Hiển thị select agent khi mở popup
+        // Đảm bảo chỉ có một sự kiện icon.onclick duy nhất
         icon.onclick = function(){
-            popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
-            if (popup.style.display === 'block') {
-                renderHistory();
-                renderSuggestions();
-                renderAgentSelect();
-            }
+            popup.style.display = 'block';
+            renderHistory();
+            renderSuggestions();
+            renderAgentSelect();
         };
     // Module suggestion: hiển thị gợi ý câu hỏi
     let suggestionDiv = popup.querySelector('.trolywp-chat-suggestion');
