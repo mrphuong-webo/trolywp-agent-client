@@ -38,11 +38,16 @@ class TrolyWP_Agent_Client_Manager_Client {
      * @return array{ok:bool, error?:string, headers?:array, payload?:array}
      */
     protected static function sign_payload(array $payload): array {
-        $key_id = get_option('webo_hmac_key_id', '');
-        $secret = get_option('webo_hmac_secret', '');
+        $user_id = get_current_user_id();
+        $key_id = get_user_meta($user_id, 'webo_hmac_key_id', true);
+        $secret = get_user_meta($user_id, 'webo_hmac_secret', true);
 
         if (empty($key_id) || empty($secret)) {
-            return ['ok' => false, 'error' => 'missing_hmac_credentials'];
+            return [
+                'ok' => false,
+                'error' => 'missing_hmac_credentials',
+                'hint' => 'Bạn chưa có key HMAC. Vui lòng vào trang hồ sơ cá nhân (User Profile) để tạo/generate key HMAC.',
+            ];
         }
 
         $payload['timestamp'] = time();

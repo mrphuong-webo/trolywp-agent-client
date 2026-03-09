@@ -30,7 +30,10 @@ class TrolyWP_Agent_Client_Admin {
                     echo '<div class="updated"><p>Đăng ký site thành công với manager hub!</p></div>';
                 } else {
                     $msg = isset($result['error']) ? $result['error'] : 'unknown_error';
-                    echo '<div class="error"><p>Đăng ký site thất bại: ' . esc_html($msg) . '</p></div>';
+                    $hint = isset($result['hint']) ? $result['hint'] : '';
+                    echo '<div class="error"><p>Đăng ký site thất bại: ' . esc_html($msg) . '</p>';
+                    if ($hint) echo '<p style="color:#d00">' . esc_html($hint) . '</p>';
+                    echo '</div>';
                 }
             } else {
                 // Site đã active → thử đồng bộ authors.
@@ -40,7 +43,10 @@ class TrolyWP_Agent_Client_Admin {
                     echo '<div class="updated"><p>Đồng bộ author thành công (' . esc_html($count) . ' author).</p></div>';
                 } else {
                     $msg = isset($result['error']) ? $result['error'] : 'unknown_error';
-                    echo '<div class="error"><p>Đồng bộ author thất bại: ' . esc_html($msg) . '</p></div>';
+                    $hint = isset($result['hint']) ? $result['hint'] : '';
+                    echo '<div class="error"><p>Đồng bộ author thất bại: ' . esc_html($msg) . '</p>';
+                    if ($hint) echo '<p style="color:#d00">' . esc_html($hint) . '</p>';
+                    echo '</div>';
                 }
             }
         }
