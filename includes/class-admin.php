@@ -19,37 +19,6 @@ class TrolyWP_Agent_Client_Admin {
     }
 
     public static function settings_tab() {
-        // Đồng bộ author và đăng ký site với manager hub (sử dụng REST API mới).
-        if (class_exists('TrolyWP_Agent_Client_Manager_Client')) {
-            $site_status = get_option('trolywp_agent_client_site_status', '');
-
-            // Nếu site chưa active → thử đăng ký với manager.
-            if ($site_status !== 'active') {
-                $result = TrolyWP_Agent_Client_Manager_Client::register_site();
-                if (!empty($result['ok'])) {
-                    echo '<div class="updated"><p>Đăng ký site thành công với manager hub!</p></div>';
-                } else {
-                    $msg = isset($result['error']) ? $result['error'] : 'unknown_error';
-                    $hint = isset($result['hint']) ? $result['hint'] : '';
-                    echo '<div class="error"><p>Đăng ký site thất bại: ' . esc_html($msg) . '</p>';
-                    if ($hint) echo '<p style="color:#d00">' . esc_html($hint) . '</p>';
-                    echo '</div>';
-                }
-            } else {
-                // Site đã active → thử đồng bộ authors.
-                $result = TrolyWP_Agent_Client_Manager_Client::sync_authors();
-                if (!empty($result['ok'])) {
-                    $count = isset($result['imported']) ? (int) $result['imported'] : 0;
-                    echo '<div class="updated"><p>Đồng bộ author thành công (' . esc_html($count) . ' author).</p></div>';
-                } else {
-                    $msg = isset($result['error']) ? $result['error'] : 'unknown_error';
-                    $hint = isset($result['hint']) ? $result['hint'] : '';
-                    echo '<div class="error"><p>Đồng bộ author thất bại: ' . esc_html($msg) . '</p>';
-                    if ($hint) echo '<p style="color:#d00">' . esc_html($hint) . '</p>';
-                    echo '</div>';
-                }
-            }
-        }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mode = isset($_POST['n8n_mode']) ? sanitize_text_field($_POST['n8n_mode']) : 'trolywp';
             update_option('trolywp_agent_client_n8n_mode', $mode);

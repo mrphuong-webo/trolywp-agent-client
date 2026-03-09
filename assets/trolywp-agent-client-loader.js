@@ -4,19 +4,28 @@
                 // Thực tế: gọi AJAX hoặc REST API WordPress để ký HMAC bằng PHP
                 // payload.signature = await getHmacSignature(payload);
                 // Demo: signature là chuỗi random
-                payload.signature = Math.random().toString(36).substring(2);
-                payload.key_id = window.TrolywpClientChatConfig.keyId || 'demo-key';
-                // Gửi lên manager hub
-                const managerUrl = 'https://trolywp.com/api/chat';
+                // Lấy key của author từ config (inject từ PHP)
+                const authorKey = window.TrolywpClientChatConfig.authorKey || '';
+                const n8nUrl = window.TrolywpClientChatConfig.n8nUrl || '';
+                if (!n8nUrl) {
+                    let history = [];
+                    try { history = JSON.parse(localStorage.getItem('trolywp_chat_history')||'[]'); } catch(e){}
+                    history.push('[Lỗi] Chưa cấu hình webhook n8n.');
+                    localStorage.setItem('trolywp_chat_history', JSON.stringify(history));
+                    renderHistory();
+                    return;
+                }
                 try {
-                    const res = await fetch(managerUrl, {
+                    const res = await fetch(n8nUrl, {
                         method: 'POST',
-                        headers: {'Content-Type':'application/json'},
+                        headers: {
+                            'Content-Type':'application/json',
+                            'X-AUTHOR-KEY': authorKey
+                        },
                         body: JSON.stringify(payload)
                     });
                     const result = await res.json();
                     if (result && result.reply) {
-                        // Hiển thị phản hồi AI
                         let history = [];
                         try { history = JSON.parse(localStorage.getItem('trolywp_chat_history')||'[]'); } catch(e){}
                         history.push(`[AI] ${result.reply}`);
