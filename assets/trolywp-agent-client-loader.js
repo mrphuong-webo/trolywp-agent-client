@@ -189,13 +189,26 @@ window.TrolywpClientChatConfig = window.TrolywpClientChatConfig || {
     defaultHeight: 420
 };
 function setupPopup() {
-    const ICON_ID = 'trolywp-chat-icon';
-    const POPUP_ID = 'trolywp-chat-popup';
-    const HANDLE_ID = 'trolywp-chat-resize-handle';
-    const icon = getEl(ICON_ID);
-    const popup = getEl(POPUP_ID);
-    const handle = getEl(HANDLE_ID);
-    if (!icon || !popup) return;
+    // Đảm bảo icon và popup được append trực tiếp vào document.body
+    let icon = document.getElementById('trolywp-chat-icon');
+    if (!icon) {
+        icon = document.createElement('div');
+        icon.id = 'trolywp-chat-icon';
+        icon.className = 'trolywp-chat-icon';
+        icon.title = 'TrolyWP Chat';
+        icon.innerHTML = '<svg width="32" height="32" fill="#fff" viewBox="0 0 24 24"><path d="M12 3C6.48 3 2 7.03 2 12c0 2.4 1.05 4.58 2.83 6.23-.13.49-.51 1.77-.73 2.47-.09.28.19.54.47.45.66-.21 2.02-.66 2.51-.81C8.7 21.66 10.31 22 12 22c5.52 0 10-4.03 10-9s-4.48-10-10-10zm0 17c-1.52 0-3.01-.29-4.37-.85l-.34-.14-.36.11c-.41.13-1.23.39-1.87.59.18-.56.47-1.51.57-1.89l.09-.36-.27-.28C4.13 16.13 3 14.17 3 12c0-4.42 4.03-8 9-8s9 3.58 9 8-4.03 8-9 8zm-1-7h2v2h-2v-2zm0-8h2v6h-2V5z"/></svg>';
+        document.body.appendChild(icon);
+    }
+    let popup = document.getElementById('trolywp-chat-popup');
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'trolywp-chat-popup';
+        popup.className = 'trolywp-chat-popup';
+        document.body.appendChild(popup);
+    }
+    const handle = document.getElementById('trolywp-chat-resize-handle');
+    // Icon luôn hiển thị ở frontend
+    icon.style.display = 'flex';
     // Lưu và hiển thị lịch sử chat (demo: chỉ lưu các message gửi từ input giả lập)
     // Tạo vùng hiển thị lịch sử nếu chưa có
     let chatHistoryDiv = popup.querySelector('.trolywp-chat-history');
