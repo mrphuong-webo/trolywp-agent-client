@@ -35,12 +35,17 @@ function trolywp_agent_client_inject_chat() {
     }
     $metadata = apply_filters('trolywp_agent_client_chat_metadata', $metadata);
 
+    $first_entry = [
+        'metadata' => $metadata,
+        'siteId'   => get_option('trolywp_agent_client_site_id', ''),
+        'authorId' => $user_id,
+        'authorKey'=> get_user_meta($user_id, 'webo_hmac_key_id', true),
+    ];
+    $first_entry = apply_filters('trolywp_agent_client_first_entry', $first_entry);
+
     $config = [
-        'n8nUrl'    => $n8n_url,
-        'metadata'  => $metadata,
-        'authorKey' => get_user_meta($user_id, 'webo_hmac_key_id', true),
-        'siteId'    => get_option('trolywp_agent_client_site_id', ''),
-        'authorId'  => $user_id,
+        'n8nUrl'        => $n8n_url,
+        'firstEntryJson'=> $first_entry,
     ];
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
     $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.5';

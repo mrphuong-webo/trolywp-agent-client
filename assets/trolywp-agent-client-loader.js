@@ -61,20 +61,16 @@
             toolbar.appendChild(sidebarBtn);
             popup.appendChild(toolbar);
         }
-        // Iframe chat – n8n Embedded Chat URL + query params (metadata)
+        // Iframe chat – n8n Embedded Chat: chỉ gửi firstEntryJson (JSON string) như webhook mong đợi
         if (!popup.querySelector('.trolywp-chat-iframe')) {
-            const params = new URLSearchParams();
-            const meta = config.metadata || {};
-            Object.keys(meta).forEach(function(k) {
-                if (meta[k] != null && meta[k] !== '') params.append(k, meta[k]);
-            });
-            if (config.siteId) params.append('siteId', config.siteId);
-            if (config.authorKey) params.append('authorKey', config.authorKey);
-            if (config.authorId) params.append('authorId', String(config.authorId));
             let chatUrl = config.n8nUrl || '';
             if (chatUrl) {
-                const sep = chatUrl.indexOf('?') === -1 ? '?' : '&';
-                chatUrl += (params.toString() ? sep + params.toString() : '');
+                const first = config.firstEntryJson;
+                if (first != null) {
+                    const json = typeof first === 'string' ? first : JSON.stringify(first);
+                    const sep = chatUrl.indexOf('?') === -1 ? '?' : '&';
+                    chatUrl += sep + 'firstEntryJson=' + encodeURIComponent(json);
+                }
             }
             let iframe = document.createElement('iframe');
             iframe.className = 'trolywp-chat-iframe';
