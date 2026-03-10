@@ -1,4 +1,3 @@
-
 <?php
 /*
 Plugin Name: TrolyWP Agent Client
@@ -94,3 +93,5 @@ add_action('admin_footer', function() {
 });
 add_action('wp_footer', ['TrolyWP_Agent_Client_Utils', 'enqueue_loader']);
 add_filter('script_loader_tag', ['TrolyWP_Agent_Client_Utils', 'add_module_attribute'], 10, 3);
+
+// Chỉ inject frontend chat widget và config HMAC, loại bỏ các chức năng thừa gây xung đột.
