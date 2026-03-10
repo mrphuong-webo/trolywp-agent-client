@@ -1,7 +1,19 @@
-// Inject icon và popup chat tự động vào frontend (không cần shortcode)
+
+<?php
+/*
+Plugin Name: TrolyWP Agent Client
+Description: Kết nối site với trolywp.com, cung cấp UI chat AI, forward chat qua HMAC.
+Version: 1.0.0
+Author: TrolyWP
+Text Domain: trolywp-agent-client
+Requires at least: 6.0
+Requires PHP: 7.4
+*/
+
+if (!defined('ABSPATH')) exit;
+
 add_action('wp_footer', function() {
     if (is_admin()) return;
-    // Inject config JS
     $user_id = get_current_user_id();
     $authorKey = $user_id ? get_user_meta($user_id, 'webo_hmac_key_id', true) : '';
     $config = [
@@ -11,7 +23,6 @@ add_action('wp_footer', function() {
         'authorId' => $user_id,
     ];
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
-    // Enqueue loader JS
     wp_enqueue_script(
         'trolywp-agent-client-loader',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client-loader.js',
@@ -19,7 +30,6 @@ add_action('wp_footer', function() {
         time(),
         true
     );
-    // Enqueue CSS
     wp_enqueue_style(
         'trolywp-agent-client-css',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client.css',
@@ -27,7 +37,7 @@ add_action('wp_footer', function() {
         time()
     );
 });
-<?php
+
 register_activation_hook(__FILE__, function() {
     if (!function_exists('is_plugin_active')) {
         require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -36,22 +46,10 @@ register_activation_hook(__FILE__, function() {
         deactivate_plugins(plugin_basename(__FILE__));
         wp_die('TrolyWP Agent Client cần cài đặt và kích hoạt plugin <b>webo-hmac-auth</b> để hoạt động.');
     }
-    // Tạo site_id nếu chưa có để dùng làm định danh client với manager hub.
     if (!get_option('trolywp_agent_client_site_id')) {
         update_option('trolywp_agent_client_site_id', wp_generate_uuid4());
     }
 });
-/**
- * Plugin Name: TrolyWP Agent Client
- * Description: Kết nối site với trolywp.com, cung cấp UI chat AI, forward chat qua HMAC.
- * Version: 1.0.0
- * Author: TrolyWP
- * Text Domain: trolywp-agent-client
- * Requires at least: 6.0
- * Requires PHP: 7.4
- */
-
-if (!defined('ABSPATH')) exit;
 
 require_once __DIR__ . '/includes/class-shortcode.php';
 require_once __DIR__ . '/includes/class-admin.php';
