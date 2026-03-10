@@ -19,7 +19,7 @@
   right: 0;
   bottom: 0;
   width: 400px;
-  height: calc(100vh - 32px); /* Trừ chiều cao admin bar */
+  height: 100vh;
   background: #fff;
   border-radius: 12px 0 0 12px;
   box-shadow: -2px 0 16px rgba(0,0,0,0.2);
@@ -28,7 +28,10 @@
   margin: 0;
   padding: 0;
   transition: right 0.3s, top 0.3s;
+}
+body.trolywp-chat-sidebar-open .trolywp-chat-popup {
   top: 32px;
+  height: calc(100vh - 32px);
 }
 body.trolywp-chat-sidebar-open {
   margin-right: 400px !important;
