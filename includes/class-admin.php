@@ -55,14 +55,14 @@ class TrolyWP_Agent_Client_Admin {
             $chat_display = get_option('trolywp_agent_client_chat_display', 'embedded');
             echo '<tr><th>Chat URL</th><td>';
             echo '<input type="url" name="custom_n8n_url" value="'.$custom_n8n_url.'" style="width:100%;max-width:500px" placeholder="https://n8n.webo.vn/webhook/.../chat" />';
-            echo '<p class="description">URL từ n8n (When chat message received → Chat URL).</p>';
+            echo '<p class="description">URL từ node <strong>Chat Trigger</strong> trong n8n (Chat URL). Plugin gửi kèm <code>firstEntryJson</code> (metadata site/user). <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.chattrigger/" target="_blank" rel="noopener">Chat Trigger docs</a></p>';
             echo '</td></tr>';
             echo '<tr><th>Chat hiển thị</th><td>';
             echo '<select name="chat_display">';
-            echo '<option value="embedded"'.($chat_display==='embedded'?' selected':'').'>Embedded Chat – nhúng iframe trong popup (n8n chọn Mode: Embedded Chat)</option>';
-            echo '<option value="hosted"'.($chat_display==='hosted'?' selected':'').'>Hosted Chat – mở tab mới (n8n chọn Mode: Hosted Chat). Vẫn gửi metadata qua firstEntryJson trên URL.</option>';
+            echo '<option value="embedded"'.($chat_display==='embedded'?' selected':'').'>Embedded Chat – iframe trong popup (n8n: Mode = Embedded Chat)</option>';
+            echo '<option value="hosted"'.($chat_display==='hosted'?' selected':'').'>Hosted Chat – mở tab mới (n8n: Mode = Hosted Chat). Metadata gửi qua firstEntryJson trên URL.</option>';
             echo '</select>';
-            echo '<p class="description">Hosted: chat mở trang n8n trong tab mới, metadata (site/user) gửi kèm query <code>firstEntryJson</code> khi mở link.</p>';
+            echo '<p class="description">Khớp với <strong>Mode</strong> trong Chat Trigger. Hosted: mở trang n8n trong tab mới, vẫn có <code>firstEntryJson</code> trên URL. <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.chattrigger/" target="_blank" rel="noopener">Chat Trigger docs</a></p>';
             echo '</td></tr>';
         }
             // ...existing code...
