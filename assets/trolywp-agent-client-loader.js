@@ -46,11 +46,13 @@
                 document.body.classList.toggle('trolywp-chat-sidebar-open');
                 if (document.body.classList.contains('trolywp-chat-sidebar-open')) {
                     popup.style.right = '0';
+                    popup.style.top = '32px';
                     popup.style.bottom = '0';
                     popup.style.height = '100vh';
                     popup.style.width = '400px';
                 } else {
                     popup.style.right = '24px';
+                    popup.style.top = '';
                     popup.style.bottom = '90px';
                     popup.style.height = '420px';
                     popup.style.width = '350px';
