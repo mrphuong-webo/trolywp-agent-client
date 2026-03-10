@@ -15,19 +15,32 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .trolywp-chat-popup {
-  display: none;
   position: fixed;
-  top: 100px; /* Đẩy popup xuống dưới admin bar fixed */
-  right: 24px;
-  width: 350px;
-  height: 420px;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  height: 100vh;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  border-radius: 12px 0 0 12px;
+  box-shadow: -2px 0 16px rgba(0,0,0,0.2);
   z-index: 99999;
   overflow: hidden;
   margin: 0;
   padding: 0;
+  transition: right 0.3s, top 0.3s;
+}
+body.trolywp-chat-sidebar-open {
+  margin-right: 400px !important;
+  transition: margin-right 0.3s;
+}
+@media (max-width: 600px) {
+  .trolywp-chat-popup {
+    width: 100vw;
+    border-radius: 0;
+  }
+  body.trolywp-chat-sidebar-open {
+    margin-right: 0 !important;
+  }
 }
 .trolywp-chat-resize-handle {
   position: absolute;
