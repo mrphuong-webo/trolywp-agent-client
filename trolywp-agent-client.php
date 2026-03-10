@@ -96,3 +96,5 @@ add_action('wp_footer', ['TrolyWP_Agent_Client_Utils', 'enqueue_loader']);
 add_filter('script_loader_tag', ['TrolyWP_Agent_Client_Utils', 'add_module_attribute'], 10, 3);
 
 // Chỉ inject frontend chat widget và config HMAC, loại bỏ các chức năng thừa gây xung đột.
+// Đảm bảo không preload file JS thủ công, chỉ dùng wp_enqueue_script
+// Nếu có theme/plugin nào thêm preload, hãy xóa hoặc sửa lại cho đúng as="script" và crossorigin="anonymous"
