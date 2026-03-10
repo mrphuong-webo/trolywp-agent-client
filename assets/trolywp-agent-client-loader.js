@@ -3,6 +3,9 @@
 
 (function() {
     function setupPopup() {
+        // Lấy config từ PHP
+        const config = window.TrolywpClientChatConfig || {};
+        const n8nUrl = config.n8nUrl || '';
         // Tạo icon nếu chưa có
         let icon = document.getElementById('trolywp-chat-icon');
         if (!icon) {
@@ -38,7 +41,7 @@
             chatInputDiv.style = 'padding:8px;border-top:1px solid #eee;background:#fafbfc;display:flex;gap:4px;';
             chatInputDiv.innerHTML = '<input type="text" class="trolywp-chat-msg" style="flex:1;padding:6px;border-radius:6px;border:1px solid #ccc;" placeholder="Nhập tin nhắn..."><button class="trolywp-chat-send" style="padding:6px 16px;border-radius:6px;border:none;background:#222;color:#fff;">Gửi</button>';
             popup.appendChild(chatInputDiv);
-            chatInputDiv.querySelector('.trolywp-chat-send').onclick = function() {
+            chatInputDiv.querySelector('.trolywp-chat-send').onclick = async function() {
                 const input = chatInputDiv.querySelector('.trolywp-chat-msg');
                 const msg = input.value.trim();
                 if (!msg) return;
@@ -53,6 +56,24 @@
                 }
                 historyDiv.innerHTML += `<div style="margin-bottom:6px;"><span style="background:#eee;padding:4px 8px;border-radius:6px;">${msg}</span></div>`;
                 historyDiv.scrollTop = historyDiv.scrollHeight;
+                // Gửi message tới n8nUrl
+                if (n8nUrl) {
+                    historyDiv.innerHTML += `<div style="margin-bottom:6px;color:#888;">Đang gửi...</div>`;
+                    try {
+                        const res = await fetch(n8nUrl, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({message: msg})
+                        });
+                        const data = await res.json();
+                        let reply = data.reply || JSON.stringify(data);
+                        historyDiv.innerHTML += `<div style="margin-bottom:6px;text-align:right;"><span style="background:#222;color:#fff;padding:4px 8px;border-radius:6px;">${reply}</span></div>`;
+                        historyDiv.scrollTop = historyDiv.scrollHeight;
+                    } catch (e) {
+                        historyDiv.innerHTML += `<div style="margin-bottom:6px;color:red;">Lỗi gửi hoặc nhận phản hồi!</div>`;
+                        historyDiv.scrollTop = historyDiv.scrollHeight;
+                    }
+                }
             };
         }
         // Sidebar mode toggle
