@@ -3,6 +3,7 @@
     function setupPopup() {
         const config = window.TrolywpClientChatConfig || {};
         const n8nUrl = config.n8nUrl || '';
+        console.log('TrolyWP DEBUG n8nUrl:', n8nUrl, config);
         // Tạo icon
         let icon = document.getElementById('trolywp-chat-icon');
         if (!icon) {
