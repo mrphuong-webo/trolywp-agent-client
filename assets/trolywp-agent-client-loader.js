@@ -124,13 +124,17 @@
             sendChatToManager(chatPayload);
         };
 
-        // Đảm bảo popup luôn được render và hiện ra ngay lần đầu tiên
+        // Đảm bảo popup luôn được render và toggle đúng
         popup.style.display = 'none'; // Ẩn mặc định
-        icon.onclick = function(){
-            popup.style.display = 'block';
-            renderHistory();
-            renderSuggestions();
-            renderAgentSelect();
+        icon.onclick = function() {
+            if (popup.style.display === 'none' || popup.style.display === '') {
+                popup.style.display = 'block';
+                renderHistory();
+                renderSuggestions();
+                renderAgentSelect();
+            } else {
+                popup.style.display = 'none';
+            }
         };
     // Module suggestion: hiển thị gợi ý câu hỏi
     let suggestionDiv = popup.querySelector('.trolywp-chat-suggestion');
