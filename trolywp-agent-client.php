@@ -46,6 +46,7 @@ function trolywp_agent_client_inject_chat() {
     $config = [
         'n8nUrl'        => $n8n_url,
         'firstEntryJson'=> $first_entry,
+        'chatDisplay'   => get_option('trolywp_agent_client_chat_display', 'embedded'),
     ];
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
     $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.5';

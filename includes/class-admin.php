@@ -25,10 +25,11 @@ class TrolyWP_Agent_Client_Admin {
             if ($mode === 'trolywp') {
                 $n8n_url = 'https://trolywp.com/webhook-n8n';
                 update_option('trolywp_agent_client_n8n_url', $n8n_url);
-            } else if ($mode === 'custom') {
-                // Luôn lưu custom_n8n_url, kể cả rỗng (để xóa nếu cần)
+            } else             if ($mode === 'custom') {
                 $custom_n8n_url = isset($_POST['custom_n8n_url']) ? esc_url_raw($_POST['custom_n8n_url']) : '';
                 update_option('trolywp_agent_client_n8n_url', $custom_n8n_url);
+                $chat_display = isset($_POST['chat_display']) && $_POST['chat_display'] === 'hosted' ? 'hosted' : 'embedded';
+                update_option('trolywp_agent_client_chat_display', $chat_display);
             }
             if (isset($_POST['ui_height'])) update_option('trolywp_agent_client_ui_height', sanitize_text_field($_POST['ui_height'] ?? '420px'));
             if (isset($_POST['ui_width'])) update_option('trolywp_agent_client_ui_width', sanitize_text_field($_POST['ui_width'] ?? '350px'));
@@ -51,9 +52,17 @@ class TrolyWP_Agent_Client_Admin {
         echo '</td></tr>';
         if ($mode === 'custom') {
             $custom_n8n_url = esc_attr(get_option('trolywp_agent_client_n8n_url', ''));
-            echo '<tr><th>Chat URL (Embedded)</th><td>';
+            $chat_display = get_option('trolywp_agent_client_chat_display', 'embedded');
+            echo '<tr><th>Chat URL</th><td>';
             echo '<input type="url" name="custom_n8n_url" value="'.$custom_n8n_url.'" style="width:100%;max-width:500px" placeholder="https://n8n.webo.vn/webhook/.../chat" />';
-            echo '<p class="description">URL từ n8n khi chọn Mode: <strong>Embedded Chat</strong> (When chat message received → Chat URL). Metadata site/user sẽ gửi kèm query string.</p>';
+            echo '<p class="description">URL từ n8n (When chat message received → Chat URL).</p>';
+            echo '</td></tr>';
+            echo '<tr><th>Chat hiển thị</th><td>';
+            echo '<select name="chat_display">';
+            echo '<option value="embedded"'.($chat_display==='embedded'?' selected':'').'>Embedded Chat – nhúng iframe trong popup (n8n chọn Mode: Embedded Chat)</option>';
+            echo '<option value="hosted"'.($chat_display==='hosted'?' selected':'').'>Hosted Chat – mở tab mới (n8n chọn Mode: Hosted Chat). Vẫn gửi metadata qua firstEntryJson trên URL.</option>';
+            echo '</select>';
+            echo '<p class="description">Hosted: chat mở trang n8n trong tab mới, metadata (site/user) gửi kèm query <code>firstEntryJson</code> khi mở link.</p>';
             echo '</td></tr>';
         }
             // ...existing code...
