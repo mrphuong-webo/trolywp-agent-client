@@ -17,7 +17,7 @@
 .trolywp-chat-popup {
   display: none;
   position: fixed;
-  bottom: 90px;
+  top: 100px; /* Đẩy popup xuống dưới admin bar fixed */
   right: 24px;
   width: 350px;
   height: 420px;
