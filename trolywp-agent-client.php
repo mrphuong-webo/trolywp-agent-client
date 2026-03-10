@@ -11,10 +11,13 @@ Requires PHP: 7.4
 
 if (!defined('ABSPATH')) exit;
 
-add_action('wp_footer', function() {
-    if (is_admin()) return;
+add_action('wp_footer', 'trolywp_agent_client_inject_chat');
+add_action('admin_footer', 'trolywp_agent_client_inject_chat');
+
+function trolywp_agent_client_inject_chat() {
     $user_id = get_current_user_id();
-    $authorKey = $user_id ? get_user_meta($user_id, 'webo_hmac_key_id', true) : '';
+    if (!$user_id) return; // Only inject if user is logged in
+    $authorKey = get_user_meta($user_id, 'webo_hmac_key_id', true);
     $config = [
         'n8nUrl' => get_option('trolywp_agent_client_n8n_url', ''),
         'authorKey' => $authorKey,
@@ -45,7 +48,7 @@ add_action('wp_footer', function() {
         $ver,
         'all'
     );
-});
+}
 
 register_activation_hook(__FILE__, function() {
     if (!function_exists('is_plugin_active')) {
