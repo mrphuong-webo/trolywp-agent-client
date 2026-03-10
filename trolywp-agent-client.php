@@ -2,7 +2,7 @@
 /*
 Plugin Name: TrolyWP Agent Client
 Description: Kết nối site với trolywp.com, cung cấp UI chat AI, forward chat qua HMAC.
-Version: 1.0.1
+Version: 1.0.2
 Author: TrolyWP
 Text Domain: trolywp-agent-client
 Requires at least: 6.0
@@ -22,7 +22,7 @@ add_action('wp_footer', function() {
         'authorId' => $user_id,
     ];
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
-    $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.0';
+    $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : get_plugin_data(__FILE__)['Version'];
     wp_enqueue_script(
         'trolywp-agent-client-loader',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client-loader.js',
