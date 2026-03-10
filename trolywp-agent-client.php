@@ -2,10 +2,13 @@
 add_action('wp_footer', function() {
     if (is_admin()) return;
     // Inject config JS
+    $user_id = get_current_user_id();
+    $authorKey = $user_id ? get_user_meta($user_id, 'webo_hmac_key_id', true) : '';
     $config = [
         'n8nUrl' => get_option('trolywp_agent_client_n8n_url', ''),
-        'authorKey' => '', // TODO: lấy key từ user_meta nếu cần
+        'authorKey' => $authorKey,
         'siteId' => get_option('trolywp_agent_client_site_id', ''),
+        'authorId' => $user_id,
     ];
     echo '<script>window.TrolywpClientChatConfig = ' . wp_json_encode($config) . ';</script>';
     // Enqueue loader JS

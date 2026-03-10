@@ -209,6 +209,17 @@ function setupPopup() {
     const handle = document.getElementById('trolywp-chat-resize-handle');
     // Icon luôn hiển thị ở frontend
     icon.style.display = 'flex';
+    // Single click handler: toggle popup reliably
+    icon.onclick = function() {
+        if (popup.style.display === 'none' || popup.style.display === '') {
+            popup.style.display = 'block';
+            renderHistory();
+            renderSuggestions();
+            renderAgentSelect();
+        } else {
+            popup.style.display = 'none';
+        }
+    };
     // Lưu và hiển thị lịch sử chat (demo: chỉ lưu các message gửi từ input giả lập)
     // Tạo vùng hiển thị lịch sử nếu chưa có
     let chatHistoryDiv = popup.querySelector('.trolywp-chat-history');
@@ -246,11 +257,8 @@ function setupPopup() {
         input.value = '';
         renderHistory();
     };
-    // Hiển thị lại lịch sử khi mở popup
-    icon.onclick = function(){
-        popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
-        if (popup.style.display === 'block') renderHistory();
-    };
+    // Remove duplicate icon.onclick handler
+    // ...existing code...
     // Resize logic giữ nguyên
     if (handle) {
         let isResizing = false, startX = 0, startWidth = 0;
