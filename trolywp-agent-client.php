@@ -10,7 +10,7 @@ add_action('wp_footer', function() {
         'siteId' => get_option('trolywp_agent_client_site_id', ''),
         'authorId' => $user_id,
     ];
-    echo '<script>window.TrolywpClientChatConfig = ' . wp_json_encode($config) . ';</script>';
+    echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
     // Enqueue loader JS
     wp_enqueue_script(
         'trolywp-agent-client-loader',
