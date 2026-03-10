@@ -21,6 +21,8 @@ add_action('wp_footer', function() {
         'siteId' => get_option('trolywp_agent_client_site_id', ''),
         'authorId' => $user_id,
     ];
+    error_log('TrolyWP DEBUG PHP n8nUrl: ' . $config['n8nUrl']);
+    error_log('TrolyWP DEBUG PHP config: ' . print_r($config, true));
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
     $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : get_plugin_data(__FILE__)['Version'];
     wp_enqueue_script(
