@@ -27,14 +27,14 @@ add_action('wp_footer', function() {
         'trolywp-agent-client-loader',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client-loader.js',
         [],
-        strtotime('nơw'),
+        $ver,
         'all'
     );
     wp_enqueue_style(
         'trolywp-agent-client-css',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client.css',
         [],
-        strtotime('nơw'),
+        $ver,
         'all'
     );
 });
