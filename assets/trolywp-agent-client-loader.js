@@ -34,6 +34,34 @@
                 popup.style.display = 'none';
             }
         };
+        // Tạo toolbar nếu chưa có
+        if (!popup.querySelector('.trolywp-chat-toolbar')) {
+            let toolbar = document.createElement('div');
+            toolbar.className = 'trolywp-chat-toolbar';
+            toolbar.style = 'display:flex;align-items:center;gap:8px;padding:8px;background:#f5f5f5;border-bottom:1px solid #eee;border-radius:12px 12px 0 0;';
+            // Sidebar button
+            let sidebarBtn = document.createElement('button');
+            sidebarBtn.textContent = 'Sidebar';
+            sidebarBtn.className = 'trolywp-chat-sidebar-btn';
+            sidebarBtn.style = 'padding:6px 16px;border-radius:6px;background:#222;color:#fff;border:none;cursor:pointer;font-weight:bold;';
+            sidebarBtn.onclick = function() {
+                document.body.classList.toggle('trolywp-chat-sidebar-open');
+                let popup = document.getElementById('trolywp-chat-popup');
+                if (document.body.classList.contains('trolywp-chat-sidebar-open')) {
+                    popup.style.right = '0';
+                    popup.style.bottom = '0';
+                    popup.style.height = '100vh';
+                    popup.style.width = '400px';
+                } else {
+                    popup.style.right = '24px';
+                    popup.style.bottom = '90px';
+                    popup.style.height = '420px';
+                    popup.style.width = '350px';
+                }
+            };
+            toolbar.appendChild(sidebarBtn);
+            popup.appendChild(toolbar);
+        }
         // Tạo input chat
         if (!popup.querySelector('.trolywp-chat-input')) {
             let chatInputDiv = document.createElement('div');
@@ -73,28 +101,6 @@
                         historyDiv.innerHTML += `<div style="margin-bottom:6px;color:red;">Lỗi gửi hoặc nhận phản hồi!</div>`;
                         historyDiv.scrollTop = historyDiv.scrollHeight;
                     }
-                }
-            };
-        }
-        // Sidebar mode toggle
-        if (!window.trolywpSidebarBtn) {
-            window.trolywpSidebarBtn = document.createElement('button');
-            window.trolywpSidebarBtn.textContent = 'Sidebar';
-            window.trolywpSidebarBtn.style = 'position:fixed;top:24px;right:24px;z-index:100000;padding:8px 16px;border-radius:8px;background:#222;color:#fff;border:none;cursor:pointer;';
-            document.body.appendChild(window.trolywpSidebarBtn);
-            window.trolywpSidebarBtn.onclick = function() {
-                document.body.classList.toggle('trolywp-chat-sidebar-open');
-                let popup = document.getElementById('trolywp-chat-popup');
-                if (document.body.classList.contains('trolywp-chat-sidebar-open')) {
-                    popup.style.right = '0';
-                    popup.style.bottom = '0';
-                    popup.style.height = '100vh';
-                    popup.style.width = '400px';
-                } else {
-                    popup.style.right = '24px';
-                    popup.style.bottom = '90px';
-                    popup.style.height = '420px';
-                    popup.style.width = '350px';
                 }
             };
         }
