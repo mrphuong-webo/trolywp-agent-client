@@ -22,6 +22,12 @@
             popup = document.createElement('div');
             popup.id = 'trolywp-chat-popup';
             popup.className = 'trolywp-chat-popup';
+            popup.style.position = 'fixed';
+            popup.style.right = '24px';
+            popup.style.bottom = '90px';
+            popup.style.height = '420px';
+            popup.style.width = '350px';
+            popup.style.zIndex = '100000';
             document.body.appendChild(popup);
         }
         icon.style.display = 'flex';
@@ -101,6 +107,9 @@
                         historyDiv.innerHTML += `<div style="margin-bottom:6px;color:red;">Lỗi gửi hoặc nhận phản hồi!</div>`;
                         historyDiv.scrollTop = historyDiv.scrollHeight;
                     }
+                } else {
+                    historyDiv.innerHTML += `<div style="margin-bottom:6px;color:red;">Chưa cấu hình webhook n8nUrl!</div>`;
+                    historyDiv.scrollTop = historyDiv.scrollHeight;
                 }
             };
         }

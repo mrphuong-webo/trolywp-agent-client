@@ -30,6 +30,12 @@ add_action('wp_footer', function() {
         $ver,
         'all'
     );
+    add_filter('script_loader_tag', function($tag, $handle, $src) {
+        if ($handle === 'trolywp-agent-client-loader') {
+            return str_replace('<script ', '<script crossorigin="anonymous" ', $tag);
+        }
+        return $tag;
+    }, 10, 3);
     wp_enqueue_style(
         'trolywp-agent-client-css',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client.css',
