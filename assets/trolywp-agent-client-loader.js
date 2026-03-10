@@ -38,10 +38,12 @@
             if (config.authorKey) params.append('authorKey', config.authorKey);
             if (config.authorId) params.append('authorId', config.authorId);
             let chatUrl = n8nUrl;
-            if (chatUrl && chatUrl.indexOf('?') === -1) {
-                chatUrl += '?' + params.toString();
-            } else if (chatUrl) {
-                chatUrl += '&' + params.toString();
+            if (chatUrl) {
+                if (chatUrl.indexOf('?') === -1) {
+                    chatUrl += '?' + params.toString();
+                } else if (params.toString()) {
+                    chatUrl += (chatUrl.endsWith('?') || chatUrl.endsWith('&') ? '' : '&') + params.toString();
+                }
             }
             let iframe = document.createElement('iframe');
             iframe.className = 'trolywp-chat-iframe';
