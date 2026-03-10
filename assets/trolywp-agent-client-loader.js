@@ -126,16 +126,20 @@
 
         // Đảm bảo popup luôn được render và toggle đúng
         popup.style.display = 'none'; // Ẩn mặc định
-        icon.onclick = function() {
-            if (popup.style.display === 'none' || popup.style.display === '') {
-                popup.style.display = 'block';
-                renderHistory();
-                renderSuggestions();
-                renderAgentSelect();
-            } else {
-                popup.style.display = 'none';
-            }
-        };
+        // Để tránh xung đột, chỉ gán icon.onclick 1 lần duy nhất sau khi DOM ready
+        if (!icon.hasAttribute('data-trolywp-handler')) {
+            icon.setAttribute('data-trolywp-handler', 'true');
+            icon.onclick = function() {
+                if (popup.style.display === 'none' || popup.style.display === '') {
+                    popup.style.display = 'block';
+                    renderHistory();
+                    renderSuggestions();
+                    renderAgentSelect();
+                } else {
+                    popup.style.display = 'none';
+                }
+            };
+        }
     // Module suggestion: hiển thị gợi ý câu hỏi
     let suggestionDiv = popup.querySelector('.trolywp-chat-suggestion');
     if (!suggestionDiv) {
@@ -175,13 +179,7 @@
     }
 
     // Hiển thị suggestion khi mở popup
-    icon.onclick = function(){
-        popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
-        if (popup.style.display === 'block') {
-            renderHistory();
-            renderSuggestions();
-        }
-    };
+    // Đã xử lý toggle ở trên, không gán lại icon.onclick
 // Main loader for TrolyWP Agent Client
 // Handles: open/close popup, resize, mode switch, shared UI logic
 import { getEl } from './trolywp-agent-client-utils.js';
