@@ -2,7 +2,7 @@
 /*
 Plugin Name: TrolyWP Agent Client
 Description: Kết nối site với trolywp.com, cung cấp UI chat AI, forward chat qua HMAC.
-Version: 1.0.0
+Version: 1.0.1
 Author: TrolyWP
 Text Domain: trolywp-agent-client
 Requires at least: 6.0
