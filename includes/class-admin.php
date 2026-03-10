@@ -51,7 +51,10 @@ class TrolyWP_Agent_Client_Admin {
         echo '</td></tr>';
         if ($mode === 'custom') {
             $custom_n8n_url = esc_attr(get_option('trolywp_agent_client_n8n_url', ''));
-            echo '<tr><th>Webhook n8n riêng</th><td><input type="text" name="custom_n8n_url" value="'.$custom_n8n_url.'" style="width:400px" placeholder="https://your-n8n-webhook" /></td></tr>';
+            echo '<tr><th>Chat URL (Embedded)</th><td>';
+            echo '<input type="url" name="custom_n8n_url" value="'.$custom_n8n_url.'" style="width:100%;max-width:500px" placeholder="https://n8n.webo.vn/webhook/.../chat" />';
+            echo '<p class="description">URL từ n8n khi chọn Mode: <strong>Embedded Chat</strong> (When chat message received → Chat URL). Metadata site/user sẽ gửi kèm query string.</p>';
+            echo '</td></tr>';
         }
             // ...existing code...
         echo '<tr><th>UI Height</th><td><input type="text" name="ui_height" value="'.$ui_height.'" style="width:120px" placeholder="420px" /></td></tr>';

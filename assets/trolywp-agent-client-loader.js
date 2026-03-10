@@ -3,7 +3,7 @@
     function setupPopup() {
         const config = window.TrolywpClientChatConfig || {};
         const n8nUrl = config.n8nUrl || '';
-        console.log('TrolyWP DEBUG n8nUrl:', n8nUrl, config);
+        if (!n8nUrl) return;
         // Tạo icon
         let icon = document.getElementById('trolywp-chat-icon');
         if (!icon) {
@@ -61,19 +61,20 @@
             toolbar.appendChild(sidebarBtn);
             popup.appendChild(toolbar);
         }
-        // Iframe chat
+        // Iframe chat – n8n Embedded Chat URL + query params (metadata)
         if (!popup.querySelector('.trolywp-chat-iframe')) {
             const params = new URLSearchParams();
+            const meta = config.metadata || {};
+            Object.keys(meta).forEach(function(k) {
+                if (meta[k] != null && meta[k] !== '') params.append(k, meta[k]);
+            });
             if (config.siteId) params.append('siteId', config.siteId);
             if (config.authorKey) params.append('authorKey', config.authorKey);
-            if (config.authorId) params.append('authorId', config.authorId);
-            let chatUrl = n8nUrl;
+            if (config.authorId) params.append('authorId', String(config.authorId));
+            let chatUrl = config.n8nUrl || '';
             if (chatUrl) {
-                if (chatUrl.indexOf('?') === -1) {
-                    chatUrl += '?' + params.toString();
-                } else if (params.toString()) {
-                    chatUrl += (chatUrl.endsWith('?') || chatUrl.endsWith('&') ? '' : '&') + params.toString();
-                }
+                const sep = chatUrl.indexOf('?') === -1 ? '?' : '&';
+                chatUrl += (params.toString() ? sep + params.toString() : '');
             }
             let iframe = document.createElement('iframe');
             iframe.className = 'trolywp-chat-iframe';

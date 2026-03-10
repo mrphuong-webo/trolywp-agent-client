@@ -16,24 +16,44 @@ add_action('admin_footer', 'trolywp_agent_client_inject_chat');
 
 function trolywp_agent_client_inject_chat() {
     $user_id = get_current_user_id();
-    if (!$user_id) return; // Only inject if user is logged in
-    $authorKey = get_user_meta($user_id, 'webo_hmac_key_id', true);
-    $config = [
-        'n8nUrl' => get_option('trolywp_agent_client_n8n_url', ''),
-        'authorKey' => $authorKey,
-        'siteId' => get_option('trolywp_agent_client_site_id', ''),
-        'authorId' => $user_id,
+    if (!$user_id) return;
+    $n8n_url = get_option('trolywp_agent_client_n8n_url', '');
+    if (empty($n8n_url) || !filter_var($n8n_url, FILTER_VALIDATE_URL)) return;
+
+    $user = wp_get_current_user();
+    $metadata = [
+        'site_url'     => home_url('/'),
+        'site_name'    => get_bloginfo('name'),
+        'language'     => get_bloginfo('language'),
+        'user_id'      => $user_id,
+        'user_email'   => $user->user_email ?? '',
+        'display_name' => $user->display_name ?? '',
+        'user_roles'   => implode(',', array_values(array_filter((array) $user->roles))),
     ];
-    error_log('TrolyWP DEBUG PHP n8nUrl: ' . $config['n8nUrl']);
-    error_log('TrolyWP DEBUG PHP config: ' . print_r($config, true));
+    if (is_multisite()) {
+        $metadata['blog_id'] = get_current_blog_id();
+    }
+    $metadata = apply_filters('trolywp_agent_client_chat_metadata', $metadata);
+
+    $config = [
+        'n8nUrl'    => $n8n_url,
+        'metadata'  => $metadata,
+        'authorKey' => get_user_meta($user_id, 'webo_hmac_key_id', true),
+        'siteId'    => get_option('trolywp_agent_client_site_id', ''),
+        'authorId'  => $user_id,
+    ];
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
-    $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : get_plugin_data(__FILE__)['Version'];
+    $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.5';
+    if (function_exists('get_plugin_data')) {
+        $data = get_plugin_data(__FILE__, false, false);
+        if (!empty($data['Version'])) $ver = $data['Version'];
+    }
     wp_enqueue_script(
         'trolywp-agent-client-loader',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client-loader.js',
         [],
         $ver,
-        'all'
+        true
     );
     add_filter('script_loader_tag', function($tag, $handle, $src) {
         if ($handle === 'trolywp-agent-client-loader') {
