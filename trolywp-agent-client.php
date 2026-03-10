@@ -22,18 +22,19 @@ add_action('wp_footer', function() {
         'authorId' => $user_id,
     ];
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
+    $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.0';
     wp_enqueue_script(
         'trolywp-agent-client-loader',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client-loader.js',
         [],
-        time(),
+        $ver,
         true
     );
     wp_enqueue_style(
         'trolywp-agent-client-css',
         plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client.css',
         [],
-        time()
+        $ver
     );
 });
 
