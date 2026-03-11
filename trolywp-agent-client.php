@@ -39,7 +39,7 @@ function trolywp_agent_client_inject_chat() {
         'metadata' => $metadata,
         'siteId'   => get_option('trolywp_agent_client_site_id', ''),
         'authorId' => $user_id,
-        'authorKey'=> get_user_meta($user_id, 'webo_hmac_key_id', true),
+        'authorKey'=> function_exists('webo_hmac_get_key_id_for_user') ? webo_hmac_get_key_id_for_user($user_id) : get_user_meta($user_id, 'webo_hmac_key_id', true),
     ];
     $first_entry = apply_filters('trolywp_agent_client_first_entry', $first_entry);
 
