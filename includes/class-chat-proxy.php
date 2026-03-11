@@ -48,7 +48,7 @@ class TrolyWP_Agent_Client_Chat_Proxy {
         wp_set_current_user($user_id);
 
         if (!function_exists('webo_hmac_sign_request')) return new \WP_REST_Response(['error' => 'webo_hmac_auth_required'], 503);
-        $key_id = get_user_meta($user_id, 'webo_hmac_key_id', true);
+        $key_id = function_exists('webo_hmac_get_key_id_for_user') ? webo_hmac_get_key_id_for_user($user_id) : get_user_meta($user_id, 'webo_hmac_key_id', true);
         if (empty($key_id)) return new \WP_REST_Response(['error' => 'user_has_no_hmac_key'], 403);
         $hmac = webo_hmac_sign_request('POST', '/wp-json/mcp/v1/router', $body_raw, $key_id);
         if (!is_array($hmac)) return new \WP_REST_Response(['error' => 'hmac_sign_failed'], 503);
