@@ -55,20 +55,14 @@ function trolywp_agent_client_inject_chat() {
         [],
         '1.12.0'
     );
-    echo '<div id="trolywp-n8n-chat-root"></div>';
-
-    $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.5';
-    if (function_exists('get_plugin_data')) {
-        $data = get_plugin_data(__FILE__, false, false);
-        if (!empty($data['Version'])) $ver = $data['Version'];
-    }
-    wp_enqueue_script(
-        'trolywp-agent-client-loader',
-        plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client-loader.js',
-        [],
-        $ver,
-        true
-    );
+    echo '<div id="trolywp-n8n-chat-root" style="position:fixed;bottom:20px;right:20px;z-index:999999;"></div>';
+    echo '<script type="module">';
+    echo "(function(){ var c = window.TrolywpClientChatConfig || {}; ";
+    echo "if(!c.n8nUrl) return; ";
+    echo "import('https://cdn.jsdelivr.net/npm/@n8n/chat@1.12.0/dist/chat.bundle.es.js').then(function(m){ ";
+    echo "m.createChat({ webhookUrl: c.n8nUrl, metadata: c.firstEntryJson || {}, target: '#trolywp-n8n-chat-root' }); ";
+    echo "}).catch(function(e){ console.error('TrolyWP n8n chat:', e); }); })();";
+    echo '</script>';
 }
 
 register_activation_hook(__FILE__, function() {
