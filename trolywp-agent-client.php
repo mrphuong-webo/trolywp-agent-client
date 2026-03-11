@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: TrolyWP Agent Client
-Description: Kết nối site với trolywp.com, cung cấp UI chat AI, forward chat qua HMAC.
+Description: Chat AI qua n8n (widget @n8n/chat), gửi metadata site/user. Cần webo-hmac-auth.
 Version: 1.0.5
 Author: TrolyWP
 Text Domain: trolywp-agent-client
@@ -46,9 +46,17 @@ function trolywp_agent_client_inject_chat() {
     $config = [
         'n8nUrl'        => $n8n_url,
         'firstEntryJson'=> $first_entry,
-        'chatDisplay'   => get_option('trolywp_agent_client_chat_display', 'embedded'),
     ];
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
+
+    wp_enqueue_style(
+        'n8n-chat-widget',
+        'https://cdn.jsdelivr.net/npm/@n8n/chat@1.12.0/dist/style.css',
+        [],
+        '1.12.0'
+    );
+    echo '<div id="trolywp-n8n-chat-root"></div>';
+
     $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.5';
     if (function_exists('get_plugin_data')) {
         $data = get_plugin_data(__FILE__, false, false);
@@ -60,19 +68,6 @@ function trolywp_agent_client_inject_chat() {
         [],
         $ver,
         true
-    );
-    add_filter('script_loader_tag', function($tag, $handle, $src) {
-        if ($handle === 'trolywp-agent-client-loader') {
-            return str_replace('<script ', '<script crossorigin="anonymous" ', $tag);
-        }
-        return $tag;
-    }, 10, 3);
-    wp_enqueue_style(
-        'trolywp-agent-client-css',
-        plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client.css',
-        [],
-        $ver,
-        'all'
     );
 }
 
@@ -89,44 +84,8 @@ register_activation_hook(__FILE__, function() {
     }
 });
 
-require_once __DIR__ . '/includes/class-shortcode.php';
 require_once __DIR__ . '/includes/class-admin.php';
 require_once __DIR__ . '/includes/class-utils.php';
-require_once __DIR__ . '/includes/class-widget.php';
-require_once __DIR__ . '/includes/class-manager-client.php';
-require_once __DIR__ . '/includes/class-rest-chat.php';
 
-add_shortcode('trolywp_ai_chat_client', ['TrolyWP_Agent_Client_Shortcode', 'render']);
 add_action('admin_menu', ['TrolyWP_Agent_Client_Admin', 'menu']);
 add_action('admin_notices', ['TrolyWP_Agent_Client_Utils', 'dependency_notice']);
-add_action('widgets_init', function () {
-    register_widget('TrolyWP_Agent_Client_Widget');
-});
-// REST API chat endpoint cho UI phía client.
-add_action('rest_api_init', ['TrolyWP_Agent_Client_REST_Chat', 'register_routes']);
-// Hiển thị icon chat ở backend admin cho admin đã đăng nhập
-add_action('admin_footer', function() {
-    if (!is_user_logged_in() || !current_user_can('manage_options')) return;
-    $ver = defined('WP_DEBUG') && WP_DEBUG ? time() : get_plugin_data(__FILE__)['Version'];
-    wp_enqueue_style(
-        'trolywp-agent-client-css',
-        plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client.css',
-        [],
-        $ver,
-        'all'
-    );
-    wp_enqueue_script(
-        'trolywp-agent-client-loader',
-        plugin_dir_url(__FILE__) . 'assets/trolywp-agent-client-loader.js',
-        [],
-        $ver,
-        'all'
-    );
-    // ...existing code...
-});
-add_action('wp_footer', ['TrolyWP_Agent_Client_Utils', 'enqueue_loader']);
-add_filter('script_loader_tag', ['TrolyWP_Agent_Client_Utils', 'add_module_attribute'], 10, 3);
-
-// Chỉ inject frontend chat widget và config HMAC, loại bỏ các chức năng thừa gây xung đột.
-// Đảm bảo không preload file JS thủ công, chỉ dùng wp_enqueue_script
-// Nếu có theme/plugin nào thêm preload, hãy xóa hoặc sửa lại cho đúng as="script" và crossorigin="anonymous"
