@@ -1,0 +1,119 @@
+================================================================================
+HƯỚNG DẪN KẾT NỐI — TrolyWP Agent Client + n8n + WEBO MCP
+================================================================================
+
+1. TỔNG QUAN QUY TRÌNH
+--------------------------------------------------------------------------------
+
+  [User] → [WordPress] → [n8n] → [WordPress MCP] (khi AI gọi tool)
+
+  • Chat: Trình duyệt gọi thẳng n8n (webhookUrl = URL Chat Trigger). WordPress chỉ inject meta (firstEntryJson: site, user, chat_token, authorKey) vào trang; widget @n8n/chat gửi kèm meta đó. Không proxy, không HMAC từ trình duyệt (secret chỉ trên server).
+  • Tool MCP: Khi AI trong n8n cần gọi WordPress, n8n gọi MCP proxy với chat_token, WordPress ký HMAC và gửi tới MCP router.
+
+
+2. THÀNH PHẦN
+--------------------------------------------------------------------------------
+
+  • webo-wordpress-mcp   — MCP router trên WordPress (nhận JSON-RPC: initialize, tools/list, tools/call).
+  • webo-hmac-auth       — Cấp key HMAC cho user, ký request (chuẩn: METHOD + path + ts + sha256(body)).
+  • trolywp-agent-client — Chat widget (@n8n/chat), inject meta (firstEntryJson) từ server; MCP proxy (chat_token → HMAC). Không proxy chat.
+  • n8n-nodes-webo-mcp   — Node n8n: WEBO MCP (tools/list, initialize, tools/call), credential HMAC.
+
+
+3. CÀI ĐẶT TRÊN WORDPRESS
+--------------------------------------------------------------------------------
+
+  3.1. Cài và kích hoạt (theo thứ tự)
+        — webo-wordpress-mcp (MCP router).
+        — webo-hmac-auth (Network Activate nếu multisite).
+        — trolywp-agent-client (phụ thuộc webo-hmac-auth).
+
+  3.2. Tạo HMAC key cho user
+        — Vào Network Admin → Users → Edit User (hoặc Users → Edit User nếu single site).
+        — Phần WEBO HMAC: tạo key, lưu Key ID và Secret (Secret chỉ hiện một lần).
+
+  3.3. Cấu hình TrolyWP Agent Client
+        — WP Admin → TrolyWP Client → Cài đặt.
+        — Chế độ n8n: "Dùng n8n riêng (tùy chỉnh)".
+        — Chat URL: URL từ node Chat Trigger trong n8n (vd https://n8n.webo.vn/webhook/xxx/chat).
+        — Lưu.
+
+
+4. CÀI ĐẶT TRÊN N8N
+--------------------------------------------------------------------------------
+
+  4.1. Chat Trigger
+        — Workflow có node "Chat Trigger" (@n8n/chat).
+        — Lấy Production URL (hoặc Test URL) làm Chat URL nhập vào WordPress (mục 3.3).
+        — Allowed Origins: * hoặc thêm domain site WordPress (vd https://toplist.danang.vn).
+
+  4.2. Custom node WEBO MCP
+        — Cài package n8n-nodes-webo-mcp (community node).
+        — Credential: WEBO MCP API — Base URL = https://your-site.com/wp-json/mcp/v1/router, Auth = HMAC, điền Key ID + HMAC Secret (trùng user đã tạo key trên WordPress).
+
+  4.3. Workflow AI Agent
+        — Kết nối node WEBO MCP vào AI Agent (tool).
+        — Node WEBO MCP có 2 ô: Name (tools/list | initialize | tên tool), Arguments (JSON).
+        — Prompt hệ thống: gọi tools/list trước để lấy danh sách tool, sau đó gọi tool với name + arguments (domain, author, ...).
+
+
+5. LUỒNG CHAT (REQUEST TỪ TRÌNH DUYỆT)
+--------------------------------------------------------------------------------
+
+  Bước 1: User mở trang có chat (đã đăng nhập WordPress).
+  Bước 2: WordPress inject script: webhookUrl = URL n8n (Chat URL đã cấu hình), metadata = firstEntryJson (site, user, chat_token, authorKey...).
+  Bước 3: Widget @n8n/chat gửi request thẳng tới n8n (webhookUrl), kèm metadata trong body theo chuẩn chat n8n.
+  Bước 4: n8n nhận request (có firstEntryJson trong metadata), xử lý chat, trả kết quả về trình duyệt.
+
+  → Không qua proxy. Meta do WordPress tạo trên server và đưa vào config widget; trình duyệt không có HMAC secret nên chat không gửi HMAC (n8n Chat Trigger thường không yêu cầu HMAC).
+
+
+6. LUỒNG MCP (N8N GỌI WORDPRESS)
+--------------------------------------------------------------------------------
+
+  Khi AI trong n8n cần gọi tool (vd tạo bài viết):
+
+  Bước 1: firstEntryJson trong chat có chat_token (TTL 15 phút).
+  Bước 2: n8n (node WEBO MCP hoặc logic workflow) gửi:
+          POST https://your-site.com/wp-json/trolywp-client/v1/mcp-proxy
+          Body: { "chat_token": "<từ firstEntryJson>", "body": <JSON-RPC: tools/call với session_id, name, arguments> }
+
+  Bước 3: WordPress (trolywp-agent-client):
+          — Kiểm tra chat_token → lấy user_id.
+          — Lấy HMAC key của user đó (webo-hmac-auth), ký body theo chuẩn webo.
+          — POST /wp-json/mcp/v1/router với header HMAC.
+
+  Bước 4: webo-wordpress-mcp + webo-hmac-auth xác thực và thực thi MCP, trả kết quả.
+  Bước 5: mcp-proxy trả kết quả về n8n.
+
+  → n8n không cần lưu HMAC secret; chỉ cần chat_token từ chat để WordPress ký thay.
+
+
+7. CHUẨN HMAC (webo-hmac-auth)
+--------------------------------------------------------------------------------
+
+  baseString = METHOD + "\n" + path + "\n" + ts + "\n" + sha256(body_raw)
+  Header: X-WEBO-KEY, X-WEBO-TS, X-WEBO-SIGN (base64 HMAC-SHA256)
+
+  Path: đường dẫn đích (vd /wp-json/mcp/v1/router). Body: raw string (POST).
+
+
+8. TÓM TẮT URL
+--------------------------------------------------------------------------------
+
+  Trên WordPress:
+  — MCP proxy (n8n gọi):           /wp-json/trolywp-client/v1/mcp-proxy
+  — MCP router (WordPress nội bộ): /wp-json/mcp/v1/router
+
+  Trên n8n:
+  — Chat Trigger Production/Test URL → nhập vào WordPress (Cài đặt) làm Chat URL. Chat gọi thẳng URL này.
+
+
+9. XỬ LỖI THƯỜNG GẶP
+--------------------------------------------------------------------------------
+
+  — Chat không load: Kiểm tra Chat URL đúng Production/Test URL của Chat Trigger; Allowed Origins có domain site.
+  — MCP proxy 401: chat_token hết hạn hoặc sai; firstEntryJson phải có chat_token (user đăng nhập WordPress mới có).
+  — user_has_no_hmac_key: User chưa có key HMAC trong webo-hmac-auth; tạo key tại Edit User.
+
+================================================================================

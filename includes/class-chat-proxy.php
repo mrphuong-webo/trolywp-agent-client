@@ -1,27 +1,15 @@
 <?php
 /**
- * Proxy chat: chỉ thêm meta (firstEntryJson) + HMAC chuẩn webo, rồi forward sang n8n.
+ * MCP proxy: n8n gửi chat_token + body → WordPress ký HMAC và gọi MCP.
+ * Chat không qua proxy: widget gọi thẳng n8n, gửi kèm meta (firstEntryJson) từ server.
  */
 if (!defined('ABSPATH')) exit;
 
 class TrolyWP_Agent_Client_Chat_Proxy {
 
     const REST_NAMESPACE = 'trolywp-client/v1';
-    const REST_ROUTE     = 'n8n-chat';
 
     public static function register_routes() {
-        register_rest_route(self::REST_NAMESPACE, '/' . self::REST_ROUTE, [
-            [
-                'methods'             => \WP_REST_Server::READABLE,
-                'callback'            => [__CLASS__, 'handle_request'],
-                'permission_callback' => '__return_true',
-            ],
-            [
-                'methods'             => \WP_REST_Server::CREATABLE,
-                'callback'            => [__CLASS__, 'handle_request'],
-                'permission_callback' => '__return_true',
-            ],
-        ]);
         register_rest_route(self::REST_NAMESPACE, '/mcp-proxy', [
             [
                 'methods'             => \WP_REST_Server::CREATABLE,
@@ -31,37 +19,7 @@ class TrolyWP_Agent_Client_Chat_Proxy {
         ]);
     }
 
-    }
-
-    /** Meta gửi kèm mỗi request: site, user, chat_token (để n8n gọi MCP proxy). */
-    private static function get_first_entry_json() {
-        $user_id = get_current_user_id();
-        if (!$user_id) return [];
-        $user = wp_get_current_user();
-        $metadata = [
-            'site_url'     => home_url('/'),
-            'site_name'    => get_bloginfo('name'),
-            'language'     => get_bloginfo('language'),
-            'user_id'      => $user_id,
-            'user_email'   => $user->user_email ?? '',
-            'display_name' => $user->display_name ?? '',
-            'user_roles'   => implode(',', array_values(array_filter((array) $user->roles))),
-        ];
-        if (is_multisite()) {
-            $metadata['blog_id'] = get_current_blog_id();
-        }
-        $metadata = apply_filters('trolywp_agent_client_chat_metadata', $metadata);
-        $first_entry = [
-            'metadata'   => $metadata,
-            'siteId'     => get_option('trolywp_agent_client_site_id', ''),
-            'authorId'   => $user_id,
-            'authorKey'  => get_user_meta($user_id, 'webo_hmac_key_id', true),
-            'chat_token' => self::get_or_create_chat_token($user_id),
-        ];
-        return apply_filters('trolywp_agent_client_first_entry', $first_entry);
-    }
-
-    private static function get_or_create_chat_token($user_id) {
+    public static function get_or_create_chat_token($user_id) {
         $key = 'trolywp_chat_token_u' . $user_id;
         $token = get_transient($key);
         if (is_string($token) && $token !== '') return $token;
@@ -75,58 +33,6 @@ class TrolyWP_Agent_Client_Chat_Proxy {
         if (!is_string($chat_token) || $chat_token === '') return 0;
         $user_id = get_transient('trolywp_chat_' . $chat_token);
         return is_numeric($user_id) ? (int) $user_id : 0;
-    }
-
-    /**
-     * Thêm meta + HMAC chuẩn webo, forward sang n8n.
-     */
-    public static function handle_request(\WP_REST_Request $request) {
-        if (!is_user_logged_in()) {
-            return new \WP_REST_Response([], 200);
-        }
-
-        $n8n_url = get_option('trolywp_agent_client_n8n_url', '');
-        if (empty($n8n_url) || !filter_var($n8n_url, FILTER_VALIDATE_URL)) {
-            return new \WP_REST_Response(['error' => 'n8n_url_not_configured'], 400);
-        }
-
-        $meta = self::get_first_entry_json();
-        $path = wp_parse_url($n8n_url, PHP_URL_PATH) ?: '/';
-        $headers = ['Accept' => 'application/json'];
-        $key_id = get_current_user_id() ? get_user_meta(get_current_user_id(), 'webo_hmac_key_id', true) : '';
-
-        if ($request->get_method() === 'GET') {
-            $url = add_query_arg(array_merge($request->get_query_params(), ['firstEntryJson' => wp_json_encode($meta)]), $n8n_url);
-            if (function_exists('webo_hmac_sign_request') && $key_id) {
-                $headers = array_merge($headers, (array) webo_hmac_sign_request('GET', $path, '', $key_id));
-            }
-            $resp = wp_remote_get($url, ['timeout' => 30, 'headers' => $headers]);
-        } else {
-            $url = add_query_arg($request->get_query_params(), $n8n_url);
-            $body = $request->get_body();
-            $decoded = json_decode($body, true);
-            $payload = is_array($decoded) ? array_merge($decoded, ['firstEntryJson' => $meta]) : ['firstEntryJson' => $meta];
-            $body = wp_json_encode($payload);
-            if (function_exists('webo_hmac_sign_request') && $key_id) {
-                $headers = array_merge($headers, (array) webo_hmac_sign_request('POST', $path, $body, $key_id));
-            }
-            $headers['Content-Type'] = 'application/json';
-            $resp = wp_remote_post($url, ['timeout' => 60, 'headers' => $headers, 'body' => $body]);
-        }
-
-        if (is_wp_error($resp)) {
-            return new \WP_REST_Response(['error' => $resp->get_error_message()], 502);
-        }
-        $res = new \WP_REST_Response();
-        $res->set_status(wp_remote_retrieve_response_code($resp));
-        if ($ct = wp_remote_retrieve_header($resp, 'content-type')) $res->header('Content-Type', $ct);
-        $data = json_decode(wp_remote_retrieve_body($resp), true);
-        $res->set_data($data !== null ? $data : wp_remote_retrieve_body($resp));
-        return $res;
-    }
-
-    public static function get_proxy_url() {
-        return rest_url(self::REST_NAMESPACE . '/' . self::REST_ROUTE);
     }
 
     /** n8n gửi chat_token + body → WordPress ký HMAC và gọi MCP. */
