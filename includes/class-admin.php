@@ -43,7 +43,7 @@ class TrolyWP_Agent_Client_Admin {
             $custom_n8n_url = esc_attr(get_option('trolywp_agent_client_n8n_url', ''));
             echo '<tr><th>Chat URL</th><td>';
             echo '<input type="url" name="custom_n8n_url" value="'.$custom_n8n_url.'" style="width:100%;max-width:500px" placeholder="https://n8n.webo.vn/webhook/.../chat" />';
-            echo '<p class="description">URL từ node <strong>Chat Trigger</strong> trong n8n. Plugin dùng widget <a href="https://www.npmjs.com/package/@n8n/chat" target="_blank" rel="noopener">@n8n/chat</a>, gửi metadata (site/user) qua <code>createChat({ metadata })</code>. Thêm domain site vào <strong>Allowed Origins (CORS)</strong> trong Chat Trigger. <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.chattrigger/" target="_blank" rel="noopener">Chat Trigger docs</a></p>';
+            echo '<p class="description">URL từ node <strong>Chat Trigger</strong> trong n8n. Chat <strong>thực thi qua WordPress</strong>: widget gọi REST của plugin, plugin forward lên n8n (URL n8n không lộ trên trình duyệt, metadata bổ sung từ server). Trong n8n Allowed Origins có thể để <code>*</code> hoặc thêm domain site. <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.chattrigger/" target="_blank" rel="noopener">Chat Trigger docs</a></p>';
             echo '</td></tr>';
         }
         echo '</table><p><input type="submit" class="button button-primary" value="Lưu" /></p></form>';
@@ -52,7 +52,7 @@ class TrolyWP_Agent_Client_Admin {
     public static function guide_tab() {
         echo '<h2>Hướng dẫn sử dụng</h2>';
         echo '<ul>';
-        echo '<li><b>Chức năng:</b> Chat AI qua site (icon chat cho user đã đăng nhập, gửi metadata site/user tới n8n).</li>';
+        echo '<li><b>Chức năng:</b> Chat AI qua site (user đăng nhập), <strong>thực thi qua plugin</strong>: request đi WordPress → n8n, URL n8n không lộ.</li>';
         echo '<li><b>Cài đặt:</b> Tab "Cài đặt" → Chế độ n8n: Dùng n8n riêng → nhập <strong>Chat URL</strong> (từ n8n Chat Trigger).</li>';
         echo '<li><b>Widget:</b> Widget chat @n8n/chat tự hiện ở frontend và admin khi user đã đăng nhập.</li>';
         echo '</ul>';

@@ -43,8 +43,11 @@ function trolywp_agent_client_inject_chat() {
     ];
     $first_entry = apply_filters('trolywp_agent_client_first_entry', $first_entry);
 
+    // Thực thi qua plugin: widget gọi REST proxy, proxy forward lên n8n → URL n8n không lộ, metadata thêm từ server
+    $chat_url = TrolyWP_Agent_Client_Chat_Proxy::get_proxy_url();
+
     $config = [
-        'n8nUrl'        => $n8n_url,
+        'n8nUrl'        => $chat_url,
         'firstEntryJson'=> $first_entry,
     ];
     echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
@@ -80,6 +83,8 @@ register_activation_hook(__FILE__, function() {
 
 require_once __DIR__ . '/includes/class-admin.php';
 require_once __DIR__ . '/includes/class-utils.php';
+require_once __DIR__ . '/includes/class-chat-proxy.php';
 
 add_action('admin_menu', ['TrolyWP_Agent_Client_Admin', 'menu']);
 add_action('admin_notices', ['TrolyWP_Agent_Client_Utils', 'dependency_notice']);
+add_action('rest_api_init', ['TrolyWP_Agent_Client_Chat_Proxy', 'register_routes']);
