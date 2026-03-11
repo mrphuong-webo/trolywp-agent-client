@@ -14,12 +14,12 @@ class TrolyWP_Agent_Client_Chat_Proxy {
             [
                 'methods'             => \WP_REST_Server::READABLE,
                 'callback'            => [__CLASS__, 'handle_request'],
-                'permission_callback' => [__CLASS__, 'permission_check'],
+                'permission_callback' => '__return_true',
             ],
             [
                 'methods'             => \WP_REST_Server::CREATABLE,
                 'callback'            => [__CLASS__, 'handle_request'],
-                'permission_callback' => [__CLASS__, 'permission_check'],
+                'permission_callback' => '__return_true',
             ],
         ]);
         register_rest_route(self::REST_NAMESPACE, '/mcp-proxy', [
@@ -31,8 +31,6 @@ class TrolyWP_Agent_Client_Chat_Proxy {
         ]);
     }
 
-    public static function permission_check(\WP_REST_Request $request) {
-        return is_user_logged_in();
     }
 
     /** Meta gửi kèm mỗi request: site, user, chat_token (để n8n gọi MCP proxy). */
@@ -83,6 +81,10 @@ class TrolyWP_Agent_Client_Chat_Proxy {
      * Thêm meta + HMAC chuẩn webo, forward sang n8n.
      */
     public static function handle_request(\WP_REST_Request $request) {
+        if (!is_user_logged_in()) {
+            return new \WP_REST_Response([], 200);
+        }
+
         $n8n_url = get_option('trolywp_agent_client_n8n_url', '');
         if (empty($n8n_url) || !filter_var($n8n_url, FILTER_VALIDATE_URL)) {
             return new \WP_REST_Response(['error' => 'n8n_url_not_configured'], 400);
