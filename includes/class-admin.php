@@ -55,7 +55,7 @@ class TrolyWP_Agent_Client_Admin {
             $chat_display = get_option('trolywp_agent_client_chat_display', 'embedded');
             echo '<tr><th>Chat URL</th><td>';
             echo '<input type="url" name="custom_n8n_url" value="'.$custom_n8n_url.'" style="width:100%;max-width:500px" placeholder="https://n8n.webo.vn/webhook/.../chat" />';
-            echo '<p class="description">URL từ node <strong>Chat Trigger</strong> trong n8n (Chat URL). Plugin gửi kèm <code>firstEntryJson</code> (metadata site/user). <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.chattrigger/" target="_blank" rel="noopener">Chat Trigger docs</a></p>';
+            echo '<p class="description">URL từ node <strong>Chat Trigger</strong> trong n8n (Chat URL), hoặc từ <a href="https://n8nchat.com/" target="_blank" rel="noopener">n8nchat.com</a>. Plugin gửi kèm <code>firstEntryJson</code> (metadata site/user). <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.chattrigger/" target="_blank" rel="noopener">Chat Trigger docs</a></p>';
             echo '</td></tr>';
             echo '<tr><th>Chat hiển thị</th><td>';
             echo '<select name="chat_display">';
@@ -76,17 +76,11 @@ class TrolyWP_Agent_Client_Admin {
     public static function guide_tab() {
         echo '<h2>Hướng dẫn sử dụng</h2>';
         echo '<ul>';
-        echo '<li><b>Chức năng:</b> Chat AI qua site chính (trolywp.vn).</li>';
-        echo '<li><b>Cài đặt:</b> Tab "Cài đặt" để nhập URL site chat (mặc định trolywp.vn).</li>';
-        echo '<li><b>Widget:</b> Thêm widget "TrolyWP Agent Client Chat" vào sidebar hoặc khu vực mong muốn để hiển thị icon chat.</li>';
-        echo '<li><b>Không còn shortcode.</b></li>';
-        echo '<li><b>REST API:</b> <br>POST /wp-json/trolywp-client/v1/chat</li>';
-        echo '<li><b>Hướng dẫn chi tiết:</b> <ul>';
-        echo '<li>1. Cài plugin, vào tab "Cài đặt" nhập URL site chat.</li>';
-        echo '<li>2. Thêm widget vào giao diện.</li>';
-        echo '</ul></li>';
-        echo '</ul>';
-        echo '</ul></li>';
+        echo '<li><b>Chức năng:</b> Chat AI qua site (icon chat cho user đã đăng nhập, gửi metadata site/user tới n8n).</li>';
+        echo '<li><b>Cài đặt:</b> Tab "Cài đặt" → Chế độ n8n: Dùng n8n riêng → nhập <strong>Chat URL</strong> (từ n8n Chat Trigger hoặc n8nchat.com).</li>';
+        echo '<li><b>Tích hợp n8n / n8nchat.com:</b> Dùng Chat URL từ workflow n8n (node Chat Trigger) hoặc từ <a href="https://n8nchat.com/" target="_blank" rel="noopener">n8nchat.com</a> (Create n8n Workflows with AI). Plugin gửi kèm <code>firstEntryJson</code> trên URL để workflow nhận metadata (site_url, user_id, user_email, …).</li>';
+        echo '<li><b>Widget:</b> Icon chat tự hiện ở frontend và admin khi user đã đăng nhập (không cần thêm widget sidebar).</li>';
+        echo '<li><b>REST API:</b> POST /wp-json/trolywp-client/v1/chat</li>';
         echo '</ul>';
     }
 }
