@@ -80,7 +80,7 @@ HƯỚNG DẪN KẾT NỐI — TrolyWP Agent Client + n8n + WEBO MCP
         • Trên WordPress: user đăng nhập, có HMAC key (authorKey sẽ có trong firstEntryJson).
         • Chat Trigger n8n nhận message kèm metadata — data sample:
             metadata.metadata.site_url = "https://your-wordpress-site.com/"
-            metadata.chat_token         = "a1b2c3d4e5f6... (hex, TTL 15 phút)"
+            metadata.chat_token         = "a1b2c3d4e5f6... (hex, sliding TTL 15 phút — mỗi lần gọi MCP thành công thì gia hạn, không cần logout)"
             metadata.authorKey          = "wk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         • Credential WEBO MCP API: Auth = "Proxy (theo author: chat_token)", Base URL để trống.
         • Trong workflow: output của Chat Trigger (hoặc node trước WEBO MCP) phải chứa metadata trên; nối vào node WEBO MCP. Node sẽ POST tới {{site_url}}/wp-json/trolywp-client/v1/mcp-proxy với body { chat_token, body }.
@@ -145,7 +145,7 @@ HƯỚNG DẪN KẾT NỐI — TrolyWP Agent Client + n8n + WEBO MCP
 
   — Chat không load: Kiểm tra Chat URL đúng Production/Test URL của Chat Trigger; Allowed Origins có domain site (vd https://your-wordpress-site.com).
   — authorKey rỗng: User chưa có key HMAC hoặc key chưa gán user meta; tạo key tại Edit User (webo-hmac-auth). Multisite: user network đăng nhập child site vẫn dùng được nếu đã tạo key cho user đó.
-  — MCP proxy 401: chat_token hết hạn hoặc sai; firstEntryJson phải có chat_token (user đăng nhập WordPress mới có).
+  — MCP proxy 401: chat_token hết hạn (sau 15 phút không có request MCP) hoặc sai; firstEntryJson phải có chat_token. Token dùng sliding expiry: mỗi lần gọi proxy thành công thì gia hạn thêm 15 phút — user không cần logout. Muốn đổi TTL: filter trolywp_chat_token_ttl (giây).
   — user_has_no_hmac_key: User chưa có key HMAC trong webo-hmac-auth; tạo key tại Edit User.
   — Proxy auth "requires site_url and chat_token": Input item vào node WEBO MCP thiếu metadata.site_url hoặc metadata.chat_token; kiểm tra output Chat Trigger có truyền metadata xuống node WEBO MCP.
   — Form credential chỉ có "HMAC", không thấy "Proxy (theo author)": Node trên server chưa cập nhật. Chạy lại deploy.ps1 (copy vào ~/.n8n/custom), restart n8n, tạo lại credential mới (hoặc xóa credential cũ và thêm lại).

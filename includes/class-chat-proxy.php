@@ -19,13 +19,19 @@ class TrolyWP_Agent_Client_Chat_Proxy {
         ]);
     }
 
+    /** TTL (giây) cho chat_token. Mặc định 15 phút; có thể filter 'trolywp_chat_token_ttl'. */
+    public static function get_chat_token_ttl() {
+        return (int) apply_filters('trolywp_chat_token_ttl', 15 * MINUTE_IN_SECONDS);
+    }
+
     public static function get_or_create_chat_token($user_id) {
         $key = 'trolywp_chat_token_u' . $user_id;
         $token = get_transient($key);
         if (is_string($token) && $token !== '') return $token;
         $token = bin2hex(random_bytes(24));
-        set_transient('trolywp_chat_' . $token, $user_id, 15 * MINUTE_IN_SECONDS);
-        set_transient($key, $token, 15 * MINUTE_IN_SECONDS);
+        $ttl = self::get_chat_token_ttl();
+        set_transient('trolywp_chat_' . $token, $user_id, $ttl);
+        set_transient($key, $token, $ttl);
         return $token;
     }
 
@@ -42,6 +48,12 @@ class TrolyWP_Agent_Client_Chat_Proxy {
         $chat_token = isset($params['chat_token']) ? trim((string) $params['chat_token']) : '';
         $user_id = self::get_user_id_by_chat_token($chat_token);
         if ($user_id <= 0) return new \WP_REST_Response(['error' => 'invalid_or_expired_chat_token'], 401);
+
+        // Sliding expiry: mỗi lần gọi proxy thành công thì gia hạn TTL — user không cần logout.
+        $ttl = self::get_chat_token_ttl();
+        set_transient('trolywp_chat_' . $chat_token, $user_id, $ttl);
+        set_transient('trolywp_chat_token_u' . $user_id, $chat_token, $ttl);
+
         $body = isset($params['body']) ? $params['body'] : null;
         if ($body === null) return new \WP_REST_Response(['error' => 'missing_body'], 400);
         $body_raw = is_string($body) ? $body : wp_json_encode($body);
