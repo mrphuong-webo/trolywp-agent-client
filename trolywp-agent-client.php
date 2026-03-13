@@ -13,61 +13,117 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-add_action('wp_footer', 'trolywp_agent_client_inject_chat');
-add_action('admin_footer', 'trolywp_agent_client_inject_chat');
+add_action(
+	'plugins_loaded',
+	'trolywp_agent_client_load_textdomain'
+);
 
+/**
+ * Load plugin textdomain.
+ *
+ * @return void
+ */
+function trolywp_agent_client_load_textdomain() {
+	load_plugin_textdomain(
+		'trolywp-agent-client',
+		false,
+		dirname( plugin_basename( __FILE__ ) ) . '/languages'
+	);
+}
+
+add_action( 'wp_footer', 'trolywp_agent_client_inject_chat' );
+add_action( 'admin_footer', 'trolywp_agent_client_inject_chat' );
+
+/**
+ * Inject n8n chat widget for logged-in users.
+ *
+ * @return void
+ */
 function trolywp_agent_client_inject_chat() {
-    $user_id = get_current_user_id();
-    if (!$user_id) return;
-    $n8n_url = get_option('trolywp_agent_client_n8n_url', '');
-    if (empty($n8n_url) || !filter_var($n8n_url, FILTER_VALIDATE_URL)) return;
+	$user_id = get_current_user_id();
+	if ( ! $user_id ) {
+		return;
+	}
 
-    $user = wp_get_current_user();
-    $metadata = [
-        'site_url'     => home_url('/'),
-        'site_name'    => get_bloginfo('name'),
-        'language'     => get_bloginfo('language'),
-        'user_id'      => $user_id,
-        'user_email'   => $user->user_email ?? '',
-        'display_name' => $user->display_name ?? '',
-        'user_roles'   => implode(',', array_values(array_filter((array) $user->roles))),
-    ];
-    if (is_multisite()) {
-        $metadata['blog_id'] = get_current_blog_id();
-    }
-    $metadata = apply_filters('trolywp_agent_client_chat_metadata', $metadata);
+	$n8n_url = get_option( 'trolywp_agent_client_n8n_url', '' );
+	if ( empty( $n8n_url ) || ! filter_var( $n8n_url, FILTER_VALIDATE_URL ) ) {
+		return;
+	}
 
-    $first_entry = [
-        'metadata' => $metadata,
-        'siteId'   => get_option('trolywp_agent_client_site_id', ''),
-        'authorId' => $user_id,
-        'authorKey'=> function_exists('webo_hmac_get_key_id_for_user') ? webo_hmac_get_key_id_for_user($user_id) : get_user_meta($user_id, 'webo_hmac_key_id', true),
-    ];
-    $first_entry = apply_filters('trolywp_agent_client_first_entry', $first_entry);
+	$user = wp_get_current_user();
 
-    $first_entry['chat_token'] = TrolyWP_Agent_Client_Chat_Proxy::get_or_create_chat_token($user_id);
+	$metadata = array(
+		'site_url'     => home_url( '/' ),
+		'site_name'    => get_bloginfo( 'name' ),
+		'language'     => get_bloginfo( 'language' ),
+		'user_id'      => $user_id,
+		'user_email'   => isset( $user->user_email ) ? $user->user_email : '',
+		'display_name' => isset( $user->display_name ) ? $user->display_name : '',
+		'user_roles'   => implode( ',', array_values( array_filter( (array) $user->roles ) ) ),
+	);
 
-    // Chat gọi thẳng n8n, gửi kèm meta (firstEntryJson). Không proxy.
-    $config = [
-        'n8nUrl'        => $n8n_url,
-        'firstEntryJson'=> $first_entry,
-    ];
-    echo '<script type="text/javascript">window.TrolywpClientChatConfig = ' . json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';</script>';
+	if ( is_multisite() ) {
+		$metadata['blog_id'] = get_current_blog_id();
+	}
 
-    wp_enqueue_style(
-        'n8n-chat-widget',
-        'https://cdn.jsdelivr.net/npm/@n8n/chat@1.12.0/dist/style.css',
-        [],
-        '1.12.0'
-    );
-    echo '<div id="trolywp-n8n-chat-root" style="position:fixed;bottom:20px;right:20px;z-index:999999;"></div>';
-    echo '<script type="module">';
-    echo "(function(){ var c = window.TrolywpClientChatConfig || {}; ";
-    echo "if(!c.n8nUrl) return; ";
-    echo "import('https://cdn.jsdelivr.net/npm/@n8n/chat@1.12.0/dist/chat.bundle.es.js').then(function(m){ ";
-    echo "m.createChat({ webhookUrl: c.n8nUrl, metadata: c.firstEntryJson || {}, target: '#trolywp-n8n-chat-root' }); ";
-    echo "}).catch(function(e){ console.error('TrolyWP n8n chat:', e); }); })();";
-    echo '</script>';
+	$metadata = apply_filters( 'trolywp_agent_client_chat_metadata', $metadata );
+
+	$first_entry = array(
+		'metadata'  => $metadata,
+		'siteId'    => get_option( 'trolywp_agent_client_site_id', '' ),
+		'authorId'  => $user_id,
+		'authorKey' => function_exists( 'webo_hmac_get_key_id_for_user' )
+			? webo_hmac_get_key_id_for_user( $user_id )
+			: get_user_meta( $user_id, 'webo_hmac_key_id', true ),
+	);
+
+	$first_entry = apply_filters( 'trolywp_agent_client_first_entry', $first_entry );
+
+	$first_entry['chat_token'] = TrolyWP_Agent_Client_Chat_Proxy::get_or_create_chat_token( $user_id );
+
+	// Chat gọi thẳng n8n, gửi kèm meta (firstEntryJson). Không proxy.
+	$config = array(
+		'n8nUrl'        => $n8n_url,
+		'firstEntryJson'=> $first_entry,
+	);
+
+	$config_json = wp_json_encode(
+		$config,
+		JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+	);
+
+	wp_enqueue_style(
+		'n8n-chat-widget',
+		'https://cdn.jsdelivr.net/npm/@n8n/chat@1.12.0/dist/style.css',
+		array(),
+		'1.12.0'
+	);
+
+	// Container for chat widget.
+	echo '<div id="trolywp-n8n-chat-root" style="position:fixed;bottom:20px;right:20px;z-index:999999;"></div>';
+
+	// Register a lightweight loader script and attach inline module logic.
+	wp_register_script(
+		'trolywp-agent-client-chat-loader',
+		'',
+		array(),
+		'1.0.5',
+		true
+	);
+
+	wp_enqueue_script( 'trolywp-agent-client-chat-loader' );
+
+	$inline = "window.TrolywpClientChatConfig = {$config_json};\n";
+	$inline .= "(function(){ var c = window.TrolywpClientChatConfig || {}; ";
+	$inline .= "if(!c.n8nUrl) return; ";
+	$inline .= "import('https://cdn.jsdelivr.net/npm/@n8n/chat@1.12.0/dist/chat.bundle.es.js').then(function(m){ ";
+	$inline .= "m.createChat({ webhookUrl: c.n8nUrl, metadata: c.firstEntryJson || {}, target: '#trolywp-n8n-chat-root' }); ";
+	$inline .= "}).catch(function(e){ console.error('TrolyWP n8n chat:', e); }); })();";
+
+	wp_add_inline_script(
+		'trolywp-agent-client-chat-loader',
+		$inline
+	);
 }
 
 register_activation_hook(__FILE__, function() {
