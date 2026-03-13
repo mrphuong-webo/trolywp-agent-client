@@ -9,7 +9,9 @@ Requires at least: 6.0
 Requires PHP: 7.4
 */
 
-if (!defined('ABSPATH')) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 add_action('wp_footer', 'trolywp_agent_client_inject_chat');
 add_action('admin_footer', 'trolywp_agent_client_inject_chat');
