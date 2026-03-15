@@ -35,6 +35,28 @@ add_action( 'wp_footer', 'trolywp_agent_client_inject_chat' );
 add_action( 'admin_footer', 'trolywp_agent_client_inject_chat' );
 
 /**
+ * Get or create a persistent chat session ID for the user (stored in user_meta).
+ * Same ID on every page load so n8n can restore conversation history by sessionId.
+ *
+ * @param int $user_id User ID.
+ * @return string Session ID (UUID-style).
+ */
+function trolywp_agent_client_get_or_create_session_id( $user_id ) {
+	$user_id = (int) $user_id;
+	if ( $user_id <= 0 ) {
+		return '';
+	}
+	$key    = 'trolywp_chat_session_id';
+	$stored = get_user_meta( $user_id, $key, true );
+	if ( is_string( $stored ) && preg_match( '/^[a-f0-9\-]{20,}$/i', $stored ) ) {
+		return $stored;
+	}
+	$session_id = function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : bin2hex( random_bytes( 16 ) );
+	update_user_meta( $user_id, $key, $session_id );
+	return $session_id;
+}
+
+/**
  * Inject n8n chat widget for logged-in users.
  *
  * @return void
@@ -68,13 +90,15 @@ function trolywp_agent_client_inject_chat() {
 
 	$metadata = apply_filters( 'trolywp_agent_client_chat_metadata', $metadata );
 
+	// Persistent session ID per user so n8n can store/load conversation history by sessionId.
 	$first_entry = array(
-		'metadata'  => $metadata,
-		'siteId'    => get_option( 'trolywp_agent_client_site_id', '' ),
-		'authorId'  => $user_id,
-		'authorKey' => function_exists( 'webo_hmac_get_key_id_for_user' )
+		'metadata'   => $metadata,
+		'siteId'     => get_option( 'trolywp_agent_client_site_id', '' ),
+		'authorId'   => $user_id,
+		'authorKey'  => function_exists( 'webo_hmac_get_key_id_for_user' )
 			? webo_hmac_get_key_id_for_user( $user_id )
 			: get_user_meta( $user_id, 'webo_hmac_key_id', true ),
+		'sessionId' => trolywp_agent_client_get_or_create_session_id( $user_id ),
 	);
 
 	$first_entry = apply_filters( 'trolywp_agent_client_first_entry', $first_entry );
@@ -117,7 +141,7 @@ function trolywp_agent_client_inject_chat() {
 	$inline .= "(function(){ var c = window.TrolywpClientChatConfig || {}; ";
 	$inline .= "if(!c.n8nUrl) return; ";
 	$inline .= "import('https://cdn.jsdelivr.net/npm/@n8n/chat@1.12.0/dist/chat.bundle.es.js').then(function(m){ ";
-	$inline .= "m.createChat({ webhookUrl: c.n8nUrl, metadata: c.firstEntryJson || {}, target: '#trolywp-n8n-chat-root' }); ";
+	$inline .= "m.createChat({ webhookUrl: c.n8nUrl, metadata: c.firstEntryJson || {}, target: '#trolywp-n8n-chat-root', loadPreviousSession: true }); ";
 	$inline .= "}).catch(function(e){ console.error('TrolyWP n8n chat:', e); }); })();";
 
 	wp_add_inline_script(
