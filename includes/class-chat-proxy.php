@@ -19,9 +19,9 @@ class TrolyWP_Agent_Client_Chat_Proxy {
         ]);
     }
 
-    /** TTL (giây) cho chat_token. Mặc định 15 phút; có thể filter 'trolywp_chat_token_ttl'. */
+    /** TTL (giây) cho chat_token. Mặc định 24 giờ; mỗi lần gọi MCP proxy thành công sẽ gia hạn (sliding expiry). Filter: trolywp_chat_token_ttl. */
     public static function get_chat_token_ttl() {
-        return (int) apply_filters('trolywp_chat_token_ttl', 15 * MINUTE_IN_SECONDS);
+        return (int) apply_filters( 'trolywp_chat_token_ttl', 24 * HOUR_IN_SECONDS );
     }
 
     public static function get_or_create_chat_token($user_id) {
