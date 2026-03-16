@@ -1,8 +1,26 @@
 <?php
 // Admin menu and dashboard logic for TrolyWP Agent Client
 class TrolyWP_Agent_Client_Admin {
+
+    /** Option values for AI token type (author choice, like Copilot). */
+    public static function get_ai_token_types() {
+        return array(
+            '' => '— Không dùng / Mặc định site —',
+            'openai' => 'OpenAI (GPT)',
+            'gemini' => 'Google Gemini',
+            'anthropic' => 'Anthropic (Claude)',
+            'groq' => 'Groq',
+            'together' => 'Together AI',
+            'custom' => 'Custom',
+        );
+    }
+
     public static function menu() {
         add_menu_page('TrolyWP Client', 'TrolyWP Client', 'manage_options', 'trolywp-client', [__CLASS__, 'main_page'], 'dashicons-admin-site', 2);
+        add_action('show_user_profile', [__CLASS__, 'user_profile_ai_fields']);
+        add_action('edit_user_profile', [__CLASS__, 'user_profile_ai_fields']);
+        add_action('personal_options_update', [__CLASS__, 'save_user_ai_fields']);
+        add_action('edit_user_profile_update', [__CLASS__, 'save_user_ai_fields']);
     }
 
     public static function main_page() {
@@ -29,6 +47,10 @@ class TrolyWP_Agent_Client_Admin {
                 $custom_n8n_url = isset($_POST['custom_n8n_url']) ? esc_url_raw($_POST['custom_n8n_url']) : '';
                 update_option('trolywp_agent_client_n8n_url', $custom_n8n_url);
             }
+            $ai_token = isset($_POST['ai_token']) ? sanitize_text_field($_POST['ai_token']) : '';
+            $ai_token_type = isset($_POST['ai_token_type']) ? sanitize_text_field($_POST['ai_token_type']) : '';
+            update_option('trolywp_agent_client_ai_token', $ai_token);
+            update_option('trolywp_agent_client_ai_token_type', $ai_token_type);
             echo '<div class="updated"><p>Lưu thành công!</p></div>';
         }
         $mode = esc_attr(get_option('trolywp_agent_client_n8n_mode', 'trolywp'));
@@ -46,7 +68,77 @@ class TrolyWP_Agent_Client_Admin {
             echo '<p class="description">URL từ node <strong>Chat Trigger</strong> trong n8n. Chat gọi <strong>thẳng n8n</strong> (không proxy); WordPress chỉ cung cấp meta (firstEntryJson: site, user, chat_token, authorKey) để widget gửi kèm. Trong n8n Allowed Origins thêm domain site. <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.chattrigger/" target="_blank" rel="noopener">Chat Trigger docs</a></p>';
             echo '</td></tr>';
         }
+        $ai_token = get_option('trolywp_agent_client_ai_token', '');
+        $ai_token_type = esc_attr(get_option('trolywp_agent_client_ai_token_type', ''));
+        $token_types = self::get_ai_token_types();
+        echo '<tr><th>Token AI mặc định (n8n)</th><td>';
+        echo '<input type="password" name="ai_token" value="'.esc_attr($ai_token).'" class="regular-text" autocomplete="off" placeholder="sk-... hoặc API key" /> ';
+        echo '<select name="ai_token_type">';
+        foreach ($token_types as $val => $label) {
+            if ($val === '') $label = '— Không gửi —';
+            echo '<option value="'.esc_attr($val).'"'.($ai_token_type === $val ? ' selected' : '').'>'.esc_html($label).'</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">Mặc định cho mọi author khi họ chưa cấu hình riêng (mỗi author có thể đặt token + chọn AI tại <strong>Hồ sơ</strong>). Token + <code>aiTokenType</code> gửi trong <code>firstEntryJson</code>; n8n dùng <code>$json.metadata.aiToken</code> / <code>$json.metadata.aiTokenType</code>.</p>';
+        echo '</td></tr>';
         echo '</table><p><input type="submit" class="button button-primary" value="Lưu" /></p></form>';
+    }
+
+    /** Show AI token + type on user profile (each author their own, like Copilot). */
+    public static function user_profile_ai_fields( $user ) {
+        if ( ! is_a( $user, 'WP_User' ) ) {
+            return;
+        }
+        $stored = get_user_meta( $user->ID, 'trolywp_ai_token', true );
+        $type   = get_user_meta( $user->ID, 'trolywp_ai_token_type', true );
+        $types  = self::get_ai_token_types();
+        ?>
+        <h3><?php esc_html_e( 'TrolyWP Chat AI', 'trolywp-agent-client' ); ?></h3>
+        <p class="description"><?php esc_html_e( 'Mỗi author dùng token và loại AI riêng (gửi sang n8n trong metadata). Để trống = dùng mặc định site.', 'trolywp-agent-client' ); ?></p>
+        <table class="form-table">
+            <tr>
+                <th><label for="trolywp_ai_token"><?php esc_html_e( 'API token AI', 'trolywp-agent-client' ); ?></label></th>
+                <td>
+                    <input type="password" name="trolywp_ai_token" id="trolywp_ai_token" class="regular-text" autocomplete="off" placeholder="<?php esc_attr_e( 'Để trống giữ nguyên', 'trolywp-agent-client' ); ?>" />
+                    <?php if ( ! empty( $stored ) ) : ?>
+                        <br><label><input type="checkbox" name="trolywp_ai_token_clear" value="1" /> <?php esc_html_e( 'Xóa token', 'trolywp-agent-client' ); ?></label>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="trolywp_ai_token_type"><?php esc_html_e( 'Loại AI', 'trolywp-agent-client' ); ?></label></th>
+                <td>
+                    <select name="trolywp_ai_token_type" id="trolywp_ai_token_type">
+                        <?php foreach ( $types as $val => $label ) : ?>
+                            <option value="<?php echo esc_attr( $val ); ?>" <?php selected( $type, $val ); ?>><?php echo esc_html( $label ); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <?php
+    }
+
+    /** Save per-author AI token and type. */
+    public static function save_user_ai_fields( $user_id ) {
+        if ( ! current_user_can( 'edit_user', $user_id ) ) {
+            return;
+        }
+        $user_id = (int) $user_id;
+        if ( $user_id <= 0 ) {
+            return;
+        }
+        if ( isset( $_POST['trolywp_ai_token_clear'] ) && $_POST['trolywp_ai_token_clear'] === '1' ) {
+            delete_user_meta( $user_id, 'trolywp_ai_token' );
+            delete_user_meta( $user_id, 'trolywp_ai_token_type' );
+            return;
+        }
+        if ( isset( $_POST['trolywp_ai_token'] ) && $_POST['trolywp_ai_token'] !== '' ) {
+            update_user_meta( $user_id, 'trolywp_ai_token', sanitize_text_field( wp_unslash( $_POST['trolywp_ai_token'] ) ) );
+        }
+        if ( isset( $_POST['trolywp_ai_token_type'] ) ) {
+            update_user_meta( $user_id, 'trolywp_ai_token_type', sanitize_text_field( wp_unslash( $_POST['trolywp_ai_token_type'] ) ) );
+        }
     }
 
     public static function guide_tab() {

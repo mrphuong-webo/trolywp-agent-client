@@ -105,6 +105,18 @@ function trolywp_agent_client_inject_chat() {
 
 	$first_entry['chat_token'] = TrolyWP_Agent_Client_Chat_Proxy::get_or_create_chat_token( $user_id );
 
+	// Per-author AI token + type (like Copilot). Fallback to site default if author has not set their own.
+	$ai_token      = get_user_meta( $user_id, 'trolywp_ai_token', true );
+	$ai_token_type = get_user_meta( $user_id, 'trolywp_ai_token_type', true );
+	if ( ! is_string( $ai_token ) || $ai_token === '' || ! is_string( $ai_token_type ) || $ai_token_type === '' ) {
+		$ai_token      = get_option( 'trolywp_agent_client_ai_token', '' );
+		$ai_token_type = get_option( 'trolywp_agent_client_ai_token_type', '' );
+	}
+	if ( is_string( $ai_token ) && $ai_token !== '' && is_string( $ai_token_type ) && $ai_token_type !== '' ) {
+		$first_entry['aiToken']     = $ai_token;
+		$first_entry['aiTokenType'] = $ai_token_type;
+	}
+
 	// Chat gọi thẳng n8n, gửi kèm meta (firstEntryJson). Không proxy.
 	$config = array(
 		'n8nUrl'        => $n8n_url,
