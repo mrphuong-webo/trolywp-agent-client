@@ -18,7 +18,7 @@ HƯỚNG DẪN KẾT NỐI — TrolyWP Agent Client + n8n + WEBO MCP
 2. THÀNH PHẦN
 --------------------------------------------------------------------------------
 
-  • webo-wordpress-mcp   — MCP router trên WordPress (nhận JSON-RPC: initialize, tools/list, tools/call).
+  • webo-mcp (WEBO MCP)   — MCP router trên WordPress (nhận JSON-RPC: initialize, tools/list, tools/call).
   • webo-hmac-auth       — Cấp key HMAC cho user, ký request (chuẩn: METHOD + path + ts + sha256(body)).
   • trolywp-agent-client — Chat widget (@n8n/chat), inject meta (firstEntryJson) từ server; MCP proxy (chat_token → HMAC). Không proxy chat.
   • n8n-nodes-webo-mcp   — Node n8n: WEBO MCP (tools/list, initialize, tools/call). Credential: HMAC hoặc Proxy (theo author).
@@ -28,7 +28,7 @@ HƯỚNG DẪN KẾT NỐI — TrolyWP Agent Client + n8n + WEBO MCP
 --------------------------------------------------------------------------------
 
   3.1. Cài và kích hoạt (theo thứ tự)
-        — webo-wordpress-mcp (MCP router).
+        — webo-mcp (WEBO MCP) (MCP router).
         — webo-hmac-auth (Network Activate nếu multisite).
         — trolywp-agent-client (phụ thuộc webo-hmac-auth).
 
@@ -117,7 +117,7 @@ HƯỚNG DẪN KẾT NỐI — TrolyWP Agent Client + n8n + WEBO MCP
   Cách B — HMAC trực tiếp
   — Node gửi POST thẳng tới Base URL (MCP router), header HMAC lấy từ credential (Key ID + Secret).
 
-  Bước chung sau khi có response: webo-wordpress-mcp + webo-hmac-auth xác thực và thực thi MCP, trả kết quả.
+  Bước chung sau khi có response: webo-mcp (WEBO MCP) + webo-hmac-auth xác thực và thực thi MCP, trả kết quả.
 
 
 8. CHUẨN HMAC (webo-hmac-auth)

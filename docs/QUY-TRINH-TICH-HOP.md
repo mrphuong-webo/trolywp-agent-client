@@ -18,7 +18,7 @@ Tài liệu mô tả quy trình end-to-end: cài đặt 4 thành phần (WordPre
     → POST /wp-json/trolywp-client/v1/mcp-proxy
     → body: { chat_token, body: <JSON-RPC> }
     → WordPress xác thực chat_token, ký HMAC, forward tới /wp-json/mcp/v1/router
-[ webo-wordpress-mcp ]
+[ webo-mcp — WEBO MCP ]
     → MCP router xử lý tools/list, tools/call theo HMAC của user
 ```
 
@@ -31,7 +31,7 @@ Tài liệu mô tả quy trình end-to-end: cài đặt 4 thành phần (WordPre
 
 | Thành phần | Vai trò |
 |------------|--------|
-| **webo-wordpress-mcp** | MCP router: REST `/mcp/v1/router`, đăng ký tools, trả tools/list & xử lý tools/call. |
+| **webo-mcp** (WEBO MCP) | MCP router: REST `/mcp/v1/router`, đăng ký tools, trả tools/list & xử lý tools/call. |
 | **webo-hmac-auth** | Quản lý API key HMAC theo user; middleware xác thực request tới MCP. User cần có key (User → WEBO API Keys) để chat gọi MCP qua proxy. |
 | **trolywp-agent-client** | Inject widget chat lên site; cung cấp firstEntryJson (metadata, sessionId, chat_token); endpoint mcp-proxy. **Phụ thuộc:** webo-hmac-auth. |
 | **n8n-nodes-webo-mcp** | Node n8n: WEBO MCP (tool) + credential Proxy. Build & deploy lên server n8n (~/.n8n/custom). |
@@ -40,8 +40,8 @@ Tài liệu mô tả quy trình end-to-end: cài đặt 4 thành phần (WordPre
 
 ## 3. Cài đặt WordPress
 
-1. Cài lần lượt: **webo-wordpress-mcp** → **webo-hmac-auth** → **trolywp-agent-client** (kích hoạt đúng thứ tự).
-2. **webo-wordpress-mcp**: Settings → WEBO MCP Settings (tuỳ chọn API Key nếu bật auth).
+1. Cài lần lượt: **webo-mcp** (WEBO MCP) → **webo-hmac-auth** → **trolywp-agent-client** (kích hoạt đúng thứ tự).
+2. **WEBO MCP**: Settings → WEBO MCP Settings (tuỳ chọn API Key / HMAC nếu bật auth).
 3. **webo-hmac-auth**: Tạo API key cho user chat: Users → Chỉnh sửa user → WEBO API Keys (HMAC) → Create Key.
 4. **trolywp-agent-client**: Settings → TrolyWP Client → Tab Cài đặt:
    - Chế độ n8n: **Dùng n8n riêng**

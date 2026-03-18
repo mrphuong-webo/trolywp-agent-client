@@ -2,7 +2,7 @@
 /*
 Plugin Name: TrolyWP Agent Client
 Description: Chat AI qua n8n (widget @n8n/chat), gửi metadata site/user. Cần webo-hmac-auth.
-Version: 1.0.5
+Version: 1.0.6
 Author: TrolyWP
 Text Domain: trolywp-agent-client
 Requires at least: 6.0
