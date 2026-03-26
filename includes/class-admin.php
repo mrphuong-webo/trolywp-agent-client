@@ -37,6 +37,7 @@ class TrolyWP_Agent_Client_Admin {
     }
 
     public static function settings_tab() {
+        TrolyWP_Agent_Client_Utils::settings_hmac_notice_if_needed();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mode = isset($_POST['n8n_mode']) ? sanitize_text_field($_POST['n8n_mode']) : 'trolywp';
             update_option('trolywp_agent_client_n8n_mode', $mode);

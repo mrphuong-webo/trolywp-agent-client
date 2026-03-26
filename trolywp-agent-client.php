@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: TrolyWP Agent Client
-Description: Chat AI qua n8n (widget @n8n/chat), gửi metadata site/user. Cần webo-hmac-auth.
-Version: 1.0.6
+Description: Chat AI qua n8n (widget @n8n/chat), gửi metadata site/user. Khuyến nghị kèm webo-hmac-auth (MCP proxy, authorKey đầy đủ).
+Version: 1.0.8
 Author: TrolyWP
 Text Domain: trolywp-agent-client
 Requires at least: 6.0
@@ -30,6 +30,42 @@ function trolywp_agent_client_load_textdomain() {
 		dirname( plugin_basename( __FILE__ ) ) . '/languages'
 	);
 }
+
+/**
+ * Whether webo-hmac-auth is active for this site (or network-wide).
+ *
+ * @return bool
+ */
+function trolywp_agent_client_is_webo_hmac_active() {
+	if ( ! function_exists( 'is_plugin_active' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+	$plugin = 'webo-hmac-auth/webo-hmac-auth.php';
+	if ( is_plugin_active( $plugin ) ) {
+		return true;
+	}
+	if ( is_multisite() && function_exists( 'is_plugin_active_for_network' ) && is_plugin_active_for_network( $plugin ) ) {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Plugin list row: hint when webo-hmac-auth is off.
+ *
+ * @param string[] $actions Existing action links.
+ * @return string[]
+ */
+function trolywp_agent_client_plugin_action_links( $actions ) {
+	if ( trolywp_agent_client_is_webo_hmac_active() ) {
+		return $actions;
+	}
+	$actions[] = '<span class="trolywp-hmac-hint" style="color:#996800;font-weight:600;">' . esc_html__( 'Khuyến nghị: bật webo-hmac-auth', 'trolywp-agent-client' ) . '</span>';
+
+	return $actions;
+}
+
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'trolywp_agent_client_plugin_action_links' );
 
 add_action( 'wp_footer', 'trolywp_agent_client_inject_chat' );
 add_action( 'admin_footer', 'trolywp_agent_client_inject_chat' );
@@ -162,18 +198,14 @@ function trolywp_agent_client_inject_chat() {
 	);
 }
 
-register_activation_hook(__FILE__, function() {
-    if (!function_exists('is_plugin_active')) {
-        require_once ABSPATH . 'wp-admin/includes/plugin.php';
-    }
-    if (!is_plugin_active('webo-hmac-auth/webo-hmac-auth.php')) {
-        deactivate_plugins(plugin_basename(__FILE__));
-        wp_die('TrolyWP Agent Client cần cài đặt và kích hoạt plugin <b>webo-hmac-auth</b> để hoạt động.');
-    }
-    if (!get_option('trolywp_agent_client_site_id')) {
-        update_option('trolywp_agent_client_site_id', wp_generate_uuid4());
-    }
-});
+register_activation_hook(
+	__FILE__,
+	function () {
+		if ( ! get_option( 'trolywp_agent_client_site_id' ) ) {
+			update_option( 'trolywp_agent_client_site_id', wp_generate_uuid4() );
+		}
+	}
+);
 
 require_once __DIR__ . '/includes/class-admin.php';
 require_once __DIR__ . '/includes/class-utils.php';
